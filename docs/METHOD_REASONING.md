@@ -1,3 +1,5 @@
+> Background for the scoring method. The final factor list and weights are in the code (pipeline/score.py) and DECISIONS.md.
+
 # Moon-First Method: what NASA already tells us, where it stops, and how we improve it
 
 Scope decision (Shashi, Nov 14): **Moon only for now.** Mars is out of scope until the Moon pipeline works.

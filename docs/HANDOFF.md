@@ -1,3 +1,5 @@
+> Historical: the first handoff, written before the scope was cut to Moon only. Problem statement, judging and submission rules in it are still valid. For the current state see PROGRESS.md.
+
 # HANDOFF: NASA Space Apps 2026, "Identify Earth Locations that Analog the Permanent Moon Base Locations and Mars"
 
 Owner: Shashi (team "fightingdreamers", Raleigh, NC local event)

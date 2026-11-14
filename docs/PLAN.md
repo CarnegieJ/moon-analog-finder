@@ -1,3 +1,5 @@
+> Historical: the plan written Saturday midday. For the current state see PROGRESS.md.
+
 # PLAN v2 (replaces the build plans in HANDOFF.md, METHOD_TASKS.md, STARTER_SET.md)
 
 Written Sat Nov 14, 2026, 12:15 PM ET. Deadline: Sun Nov 15, 11:59 PM local event time. About 35 hours left, zero code written.
