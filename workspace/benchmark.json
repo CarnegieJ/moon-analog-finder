@@ -1,0 +1,108 @@
+{
+ "library_windows": 167471,
+ "coverage": {
+  "in_library": 7,
+  "of": 10,
+  "missing": [
+   "McMurdo Dry Valleys (Taylor Valley)",
+   "Teide (Tenerife)",
+   "Craters of the Moon (Idaho)"
+  ]
+ },
+ "recovery": {
+  "lunar_spots_sampled": 300,
+  "sites": {
+   "Haughton Crater (Devon Island)": {
+    "pct": 0.0,
+    "score": 0.66,
+    "purpose": "darkness survival",
+    "spot": "80.2S 131E, median slope 9 deg"
+   },
+   "Atacama Desert (Yungay)": {
+    "pct": 0.0,
+    "score": 0.96,
+    "purpose": "rover driving",
+    "spot": "82.2S -95E, median slope 6 deg"
+   },
+   "Meteor Crater (Arizona)": {
+    "pct": 14.96,
+    "score": 0.5,
+    "purpose": "shadow work",
+    "spot": "80.4S -82E, median slope 1 deg"
+   },
+   "Svalbard (Bockfjorden)": {
+    "pct": 0.04,
+    "score": 0.63,
+    "purpose": "shadow work",
+    "spot": "83.4S -118E, median slope 16 deg"
+   },
+   "Black Point Lava Flow (Arizona)": {
+    "pct": 0.03,
+    "score": 0.96,
+    "purpose": "rover driving",
+    "spot": "85.9S -88E, median slope 2 deg"
+   },
+   "Mauna Kea (Hawaii)": {
+    "pct": 0.0,
+    "score": 0.94,
+    "purpose": "rover driving",
+    "spot": "86.2S 121E, median slope 6 deg"
+   },
+   "Askja (Iceland)": {
+    "pct": 0.03,
+    "score": 0.95,
+    "purpose": "rover driving",
+    "spot": "81.4S 179E, median slope 4 deg"
+   }
+  },
+  "top1pct": 6,
+  "top5pct": 6,
+  "of": 7
+ },
+ "rejection": {
+  "negative_control_max_score_rover_driving": 0.0,
+  "library_windows_with_vegetation_index_over_0.2": 0
+ },
+ "stability": {
+  "cases": {
+   "Haworth / rover driving": {
+    "mean_kept": 0.97,
+    "worst_kept": 0.9
+   },
+   "Haworth / shadow work": {
+    "mean_kept": 0.97,
+    "worst_kept": 0.9
+   },
+   "Haworth / darkness survival": {
+    "mean_kept": 0.88,
+    "worst_kept": 0.5
+   },
+   "Malapert Massif / rover driving": {
+    "mean_kept": 0.9,
+    "worst_kept": 0.9
+   },
+   "Malapert Massif / shadow work": {
+    "mean_kept": 0.93,
+    "worst_kept": 0.9
+   },
+   "Malapert Massif / darkness survival": {
+    "mean_kept": 0.88,
+    "worst_kept": 0.5
+   },
+   "de Gerlache Rim 2 / rover driving": {
+    "mean_kept": 0.93,
+    "worst_kept": 0.9
+   },
+   "de Gerlache Rim 2 / shadow work": {
+    "mean_kept": 0.92,
+    "worst_kept": 0.8
+   },
+   "de Gerlache Rim 2 / darkness survival": {
+    "mean_kept": 0.88,
+    "worst_kept": 0.5
+   }
+  },
+  "mean_kept": 0.92,
+  "worst_kept": 0.5
+ }
+}

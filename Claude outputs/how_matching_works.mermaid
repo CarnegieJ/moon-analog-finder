@@ -1,0 +1,33 @@
+flowchart TD
+    subgraph MOON["MOON: NASA Lunar Reconnaissance Orbiter data"]
+        M1["Elevation, 80 m<br/>(laser altimeter)"]
+        M2["Average sunlight and<br/>permanent shadow maps"]
+        M3["Surface temperature<br/>(Diviner instrument)"]
+    end
+    subgraph EARTH["EARTH: satellite data"]
+        E1["Elevation, 90 m<br/>(Copernicus DEM, ESA)"]
+        E2["Vegetation index<br/>(NASA MODIS)"]
+        E3["Land surface temperature<br/>(NASA MODIS)"]
+        E4["Sun angle and darkness<br/>(computed from latitude)"]
+    end
+
+    M1 --> MW["Cut a 10 km window<br/>around the chosen lunar spot"]
+    M2 --> MW
+    M3 --> MW
+    E2 --> FILT["Keep only bare, snow-free land<br/>399 map squares"]
+    E1 --> EW["Cut into 10 km windows<br/>on the same 80 m grid<br/>25,761 windows"]
+    FILT --> EW
+
+    MW --> FP["Same code on both sides:<br/>slope spread, slope classes at 10 and 20 degrees,<br/>roughness, temperature, light"]
+    EW --> FP
+    E3 --> FP
+    E4 --> FP
+
+    FP --> FOM["Score each factor 0 to 1<br/>= the fraction that is the same<br/>(NASA lunar simulant Figure of Merit)"]
+    PUR["Engineer picks a test purpose:<br/>rover driving, shadow work,<br/>or darkness survival"] --> W["Purpose sets the weights<br/>(team-set, adjustable)"]
+    FOM --> SCORE["Weighted score per Earth window<br/>forest and farmland gated to zero"]
+    W --> SCORE
+    SCORE --> RANK["Rank all windows<br/>best window per map square"]
+    RANK --> OUT["Result: ranked Earth sites<br/>with a score per factor"]
+    OUT --> CHK["Checks: known NASA analog sites,<br/>forest and farmland controls"]
+    OUT --> LIM["Always shown as zero:<br/>gravity, vacuum, radiation"]

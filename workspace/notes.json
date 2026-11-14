@@ -1,0 +1,108 @@
+{
+ "phases": [
+  {
+   "n": 0,
+   "name": "Setup",
+   "status": "done"
+  },
+  {
+   "n": 1,
+   "name": "Moon reference profiles",
+   "status": "done"
+  },
+  {
+   "n": 2,
+   "name": "Earth sites and scoring",
+   "status": "done"
+  },
+  {
+   "n": 3,
+   "name": "Light and temperature",
+   "status": "done"
+  },
+  {
+   "n": 4,
+   "name": "Discovery search",
+   "status": "review"
+  },
+  {
+   "n": 5,
+   "name": "Web app",
+   "status": "next"
+  },
+  {
+   "n": 6,
+   "name": "Video and submission",
+   "status": "todo"
+  }
+ ],
+ "checks": [
+  {
+   "ok": true,
+   "text": "Our slope code matches NASA's own slope product: median slope differs by under 0.2 degrees on all three targets. The same code will be used on Earth data."
+  },
+  {
+   "ok": true,
+   "text": "Matches NASA's statement that slopes over 10 degrees are common at the south pole: 84% of Malapert and 78% of de Gerlache windows are over 10 degrees."
+  },
+  {
+   "ok": true,
+   "text": "Flat farmland and rainforest score near zero (0.04 to 0.05) against the two steep targets, Malapert and de Gerlache."
+  },
+  {
+   "ok": true,
+   "text": "Bare-surface gate works: Appalachian forest, Iowa and Amazon now score 0.00 for rover driving on every target (they were ranked 1st, 8th and 15th before)."
+  },
+  {
+   "ok": true,
+   "text": "Darkness survival: the four sites above 75 degrees latitude take the top four places on every target; deserts and volcanoes at low latitude score under 0.3."
+  },
+  {
+   "ok": true,
+   "text": "Different purposes give different winners for the same lunar spot, e.g. Malapert: Peary Land and Teide for rover driving, McMurdo and Haughton for darkness survival."
+  },
+  {
+   "ok": false,
+   "text": "Not done yet: confidence bands (bootstrap) and weight-sensitivity test."
+  },
+  {
+   "ok": true,
+   "text": "Wider search: 25,761 bare-land windows from 399 map squares scored against the three lunar targets."
+  },
+  {
+   "ok": true,
+   "text": "Blind rediscovery: the top darkness-survival window on Earth (75.3 N, 91.7 W) is on Devon Island, about 55 km from Haughton Crater, NASA's long-running analog site. The search did not know that site was special."
+  },
+  {
+   "ok": true,
+   "text": "Peary Land (north Greenland) and northern Ellesmere Island take the top places for shadow work at Malapert Massif, confirming the earlier hand-picked result."
+  }
+ ],
+ "discuss": [
+  {
+   "id": "Q2",
+   "text": "Target centres are approximate. Need a cited source for Artemis III region coordinates, or label them approximate in the app."
+  },
+  {
+   "id": "Q9",
+   "text": "Weights and thresholds (vegetation cut-offs, 200 K temperature range) are team-set. OK to ship with sliders and a clear 'team-set' label?"
+  },
+  {
+   "id": "Q11",
+   "text": "Rover-driving matches for the steep targets are in the Chilean Andes foothills (about 26 to 29 S, 70 W), scoring up to 0.95. Place names are my reading of the coordinates and need checking on a map."
+  },
+  {
+   "id": "Q12",
+   "text": "Darkness-survival ranking is nearly the same for every lunar target, because it depends on latitude and cold, not terrain. Honest, but it means that purpose is about the Earth site, not the lunar spot."
+  }
+ ],
+ "decisions": [
+  "Moon only. Mars is out of scope.",
+  "Method: Analog Figure of Merit (per-dimension 0 to 1 scores x purpose weights).",
+  "Compare terrain at about 80 to 90 m on both bodies.",
+  "Demo: 30-second video. Solo build.",
+  "Main flow is Moon-first: pick a lunar spot and a test purpose, get ranked Earth sites.",
+  "Every step needs a real-use justification (see docs/DECISIONS.md).",
+  "Moon map clickable anywhere; window 10 km, matching NASA's 5 km traverse range."
+ ]
+}

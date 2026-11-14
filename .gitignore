@@ -1,0 +1,9 @@
+.env
+data/
+__pycache__/
+node_modules/
+*.pyc
+
+# local caches and editor files
+.vscode/
+*.log
