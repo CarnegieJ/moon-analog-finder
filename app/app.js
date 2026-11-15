@@ -10,9 +10,10 @@ const PURPOSES = {
 const S = {purpose: "mobility", spot: null, site: null, col: "slope", rot: {x: -1.05, z: 0.6}};
 let MAN, E, M, DEM, moonMap, earthMap, spotRect, earthMarkers = [], scores = null, topSites = [];
 
-async function bin(u, T) { return new T(await (await fetch(u)).arrayBuffer()); }
+const DATA_V = "6";  // bump whenever files in data/ or layers/ change, so browsers do not reuse old copies
+async function bin(u, T) { return new T(await (await fetch(u + "?v=" + DATA_V)).arrayBuffer()); }
 async function init() {
-  MAN = await (await fetch("data/manifest.json")).json();
+  MAN = await (await fetch("data/manifest.json?v=" + DATA_V, {cache: "no-cache"})).json();
   const [eh, em, mh, mm, dem] = await Promise.all([bin("data/earth_hist.bin", Uint8Array), bin("data/earth_meta.bin", Float32Array),
     bin("data/moon_hist.bin", Uint8Array), bin("data/moon_meta.bin", Float32Array), bin("data/moon_dem400.bin", Int16Array)]);
   E = {n: MAN.earth.n, hist: eh, meta: em, nc: MAN.earth.cols.length, c: Object.fromEntries(MAN.earth.cols.map((k, i) => [k, i]))};
@@ -31,10 +32,10 @@ const mv = (i, k) => M.meta[i * M.nc + M.c[k]], ev = (i, k) => E.meta[i * E.nc +
 function buildMoonMap() {
   const B = [[-304, -304], [304, 304]];
   moonMap = L.map("moonmap", {crs: L.CRS.Simple, minZoom: -0.5, maxZoom: 4, zoomSnap: 0.5, attributionControl: false, maxBounds: [[-340, -340], [340, 340]]});
-  L.imageOverlay("layers/base.png", B).addTo(moonMap); moonMap.fitBounds([[-160, -160], [160, 160]]);
+  L.imageOverlay("layers/base.png?v=" + DATA_V, B).addTo(moonMap); moonMap.fitBounds([[-160, -160], [160, 160]]);
   const defs = [["slope", "Slope"], ["sunlight", "Average sunlight"], ["shadow", "Permanent shadow"], ["temperature", "Peak temperature"]], lay = {};
   defs.forEach(([k, label]) => {
-    lay[k] = L.imageOverlay(`layers/${k}.png`, B, {opacity: 0.85});
+    lay[k] = L.imageOverlay(`layers/${k}.png?v=${DATA_V}`, B, {opacity: 0.85});
     const b = document.createElement("button"); b.className = "chip"; b.textContent = label;
     b.onclick = () => { const on = moonMap.hasLayer(lay[k]); on ? moonMap.removeLayer(lay[k]) : lay[k].addTo(moonMap); b.classList.toggle("on", !on); if (spotRect) spotRect.bringToFront(); };
     $("layers").appendChild(b);
@@ -49,7 +50,7 @@ function buildMoonMap() {
 }
 function selectSpot(x, y, name) {
   const gx = Math.round(x / 5000) * 5000, gy = Math.round(y / 5000) * 5000, i = M.idx.get(gx + "," + gy);
-  if (i === undefined) { $("spot").querySelector("p").innerHTML = '<span class="flag bad">No data here. The map covers 80 to 90 degrees south.</span>'; return; }
+  if (i === undefined) { document.querySelectorAll("#spot .nodata").forEach(e => e.remove()); $("spot").insertAdjacentHTML("afterbegin", '<div class="flag bad nodata">No data at that point. The map covers 80 to 90 degrees south; pick a spot inside that circle.</div>'); return; }
   S.spot = {i, x: gx, y: gy, name: name || null}; S.site = null;
   if (spotRect) moonMap.removeLayer(spotRect);
   spotRect = L.rectangle([[gy / 1000 - 5, gx / 1000 - 5], [gy / 1000 + 5, gx / 1000 + 5]], {color: "#4ade80", weight: 2, fill: false}).addTo(moonMap);
@@ -177,16 +178,16 @@ function moonPatch() { const n = 26, z = new Float32Array(n * n), D = MAN.moon.d
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) { const rr = Math.min(D.n - 1, Math.max(0, r0 + r)), cc = Math.min(D.n - 1, Math.max(0, c0 + c)); z[r * n + c] = DEM[rr * D.n + cc]; } return {z, n}; }
 const ramp = t => { t = clip(t); const s = [[13, 8, 135], [126, 3, 168], [204, 71, 120], [248, 149, 64], [240, 249, 33]], x = t * 4, i = Math.min(3, Math.floor(x)), f = x - i; return s[i].map((v, k) => (v + (s[i + 1][k] - v) * f) / 255); };
 function buildMesh(v) {
-  v.grp.clear(); if (!v.z) return; const {z, n} = v.z, g = new THREE.PlaneGeometry(10, 10, n - 1, n - 1), pos = g.attributes.position, col = new Float32Array(n * n * 3), cell = 10000 / (n - 1);
+  v.grp.clear(); v.span = 0; if (!v.z) return; const {z, n} = v.z, g = new THREE.PlaneGeometry(10, 10, n - 1, n - 1), pos = g.attributes.position, col = new Float32Array(n * n * 3), cell = 10000 / (n - 1);
   let mn = Infinity, mx = -Infinity; for (const h of z) { if (h < mn) mn = h; if (h > mx) mx = h; }
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) { const i = r * n + c; pos.setZ(i, (z[i] - (mn + mx) / 2) / 1000 * 2);
     let t; if (S.col == "height") t = (z[i] - mn) / Math.max(mx - mn, 1); else { const dx = (z[r * n + Math.min(n - 1, c + 1)] - z[r * n + Math.max(0, c - 1)]) / (2 * cell), dy = (z[Math.min(n - 1, r + 1) * n + c] - z[Math.max(0, r - 1) * n + c]) / (2 * cell); t = Math.atan(Math.hypot(dx, dy)) * 180 / Math.PI / 30; }
     const k = ramp(t); col[i * 3] = k[0]; col[i * 3 + 1] = k[1]; col[i * 3 + 2] = k[2]; }
-  g.setAttribute("color", new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
+  g.setAttribute("color", new THREE.BufferAttribute(col, 3)); g.computeVertexNormals(); v.span = (mx - mn) / 1000 * 2;
   v.grp.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({vertexColors: true, side: THREE.DoubleSide})));
 }
 function draw3d() { if (S.spot) V.c3m.z = moonPatch(); buildMesh(V.c3m); buildMesh(V.c3e); render3d(); }
-function render3d() { for (const id in V) { const v = V[id], w = v.cv.clientWidth, h = v.cv.clientHeight; if (!w) continue; v.r.setPixelRatio(window.devicePixelRatio); v.r.setSize(w, h, false); v.cam.aspect = w / h; v.cam.updateProjectionMatrix(); v.grp.rotation.set(0, 0, S.rot.z); const dist = 19 * Math.max(1, 1.45 / (w / h)), el = -S.rot.x - 0.5; v.cam.position.set(0, -dist * Math.cos(el), dist * Math.sin(el)); v.cam.lookAt(0, 0, 0); v.r.render(v.sc, v.cam); } }
+function render3d() { for (const id in V) { const v = V[id], w = v.cv.clientWidth, h = v.cv.clientHeight; if (!w) continue; v.r.setPixelRatio(window.devicePixelRatio); v.r.setSize(w, h, false); v.cam.aspect = w / h; v.cam.updateProjectionMatrix(); v.grp.rotation.set(0, 0, S.rot.z); const span = Math.max(V.c3m.span || 0, V.c3e.span || 0), dist = 19 * Math.max(1, 1.45 / (w / h)) * Math.max(1, (10 + span * 1.6) / 12), el = -S.rot.x - 0.5; v.cam.position.set(0, -dist * Math.cos(el), dist * Math.sin(el)); v.cam.lookAt(0, 0, 0); v.r.render(v.sc, v.cam); } }
 /* Earth display patch from open Terrarium elevation tiles (AWS Open Data). Display only. */
 const tileCache = new Map();
 function tile(z, x, y) { const k = `${z}/${x}/${y}`; if (!tileCache.has(k)) tileCache.set(k, new Promise((res, rej) => { const im = new Image(); im.crossOrigin = "anonymous"; im.onload = () => { const c = document.createElement("canvas"); c.width = c.height = 256; const cx = c.getContext("2d", {willReadFrequently: true}); cx.drawImage(im, 0, 0); res(cx.getImageData(0, 0, 256, 256).data); }; im.onerror = rej; im.src = `https://s3.amazonaws.com/elevation-tiles-prod/terrarium/${k}.png`; })); return tileCache.get(k); }
