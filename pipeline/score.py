@@ -9,10 +9,11 @@ def clip(v): return float(min(max(v, 0.0), 1.0))
 CLS = ["share_lt5", "share_5_10", "share_10_20", "share_gt20"]   # NASA mobility figures: 10 and 20 degrees
 T_RANGE = 200.0      # K, normaliser for temperature differences
 DARK_TARGET_H = 120  # NASA Moon Base User's Guide 2026: survive 120+ hours of darkness
-FACTORS = {"slope": "Slope match", "classes": "Slope classes", "rough": "Roughness", "bare": "Bare surface", "lowsun": "Low sun",
+H_RANGE, RET_RANGE = 0.4, 0.5
+FACTORS = {"slope": "Slope match", "classes": "Slope classes", "rough": "Roughness (old)", "scale": "Roughness across scales", "bare": "Bare surface", "lowsun": "Low sun",
            "dark": "Long darkness", "t_peak": "Peak temperature", "t_cold": "Cold"}
 PURPOSES = {
-  "mobility": {"name": "Rover driving", "gate_bare": True, "w": {"slope": .35, "classes": .30, "rough": .35}},
+  "mobility": {"name": "Rover driving", "gate_bare": True, "w": {"slope": .50, "scale": .50}},
   "shadow":   {"name": "Shadow work and crater access", "gate_bare": True, "w": {"classes": .35, "lowsun": .35, "t_cold": .30}},
   "darkness": {"name": "Power and darkness survival", "gate_bare": False, "w": {"dark": .45, "t_cold": .35, "lowsun": .20}},
 }
@@ -21,6 +22,7 @@ def foms(e, m):
     return {"slope": fom_hist(e["slope_hist"], m["slope_hist"]),
             "classes": fom_hist([e[c] for c in CLS], [m[c] for c in CLS]),
             "rough": 0.5 * (fom_ratio(e["tri_p50"], m["tri_p50"]) + fom_ratio(e["tri_p90"], m["tri_p90"])),
+            "scale": 0.5 * (clip(1 - abs(e["hurst"] - m["hurst"]) / H_RANGE) + clip(1 - abs(e["slope320_p50"] / max(e["slope_p50"], 1e-6) - m["slope320_p50"] / max(m["slope_p50"], 1e-6)) / RET_RANGE)),
             "bare": 1.0 if nd is None else clip(1 - (nd - 0.2) / 0.4),          # NDVI <= 0.2 bare, >= 0.6 fully vegetated; no data (ice/rock) = bare
             "lowsun": clip(e["lowsun_share"]),                                 # Moon: sun never above ~12 deg poleward of 80 S, so lunar value = 1
             "dark": clip(e["dark_longest_h"] / DARK_TARGET_H),

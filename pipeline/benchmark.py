@@ -36,7 +36,7 @@ sc = json.load(open("data/out/scores.json")); neg = []
 for tid, T in sc["targets"].items():
     for r in T["purposes"]["mobility"]:
         if r["group"] == "negative": neg.append(r["afom"])
-out["rejection"] = {"negative_control_max_score_rover_driving": float(max(neg)), "library_windows_with_vegetation_index_over_0.2": int(np.nansum(L["ndvi"] > 0.2001))}
+out["rejection"] = {"negative_control_max_score_rover_driving": float(max(neg)), "library_windows_with_vegetation_index_over_0.3": int(np.nansum(L["ndvi"] > 0.3001))}
 
 # 4. Stability: top-10 regions when each weight moves by +/-0.10 (then renormalised)
 def top10(a):
@@ -58,5 +58,15 @@ for t in named:
                 keep.append(len(base & top10(ls.afom(f, p))) / 10)
         ls.W[p] = dict(W0[p]); stab[f'{t["name"]} / {PN[p]}'] = {"mean_kept": round(float(np.mean(keep)), 2), "worst_kept": round(float(np.min(keep)), 2)}
 out["stability"] = {"cases": stab, "mean_kept": round(float(np.mean([v["mean_kept"] for v in stab.values()])), 2), "worst_kept": round(float(min(v["worst_kept"] for v in stab.values())), 2)}
-json.dump(out, open("data/out/benchmark.json", "w"), indent=1)
+# 5. Independence: highest correlation between any two weighted terrain factors (rover driving)
+# 6. Combination rule: top-100 overlap between weighted sum and "weakest factor decides"
+ind, agr = [], []
+for t in named:
+    f = ls.foms(L, t["features"]); ks = list(W0["mobility"])
+    c = np.corrcoef([f[k] for k in ks]); ind.append(float(np.max(np.abs(c[np.triu_indices(len(ks), 1)]))))
+    a = ls.afom(f, "mobility"); gm = f["bare"] * np.prod([f[k] for k in ks], axis=0) ** (1 / len(ks))
+    agr.append(len(set(np.argsort(-a)[:100]) & set(np.argsort(-gm)[:100])))
+out["independence"] = {"max_corr_between_factors": [round(v, 2) for v in ind]}
+out["combination_rule"] = {"top100_overlap_weighted_sum_vs_geometric_mean": agr}
+json.dump(out, open("data/out/benchmark_v2.json", "w"), indent=1)
 print(json.dumps(out, indent=1))

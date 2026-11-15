@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Moon Analog Finder</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head><body>
 <header><div><h1>Moon Analog Finder</h1><span class="sub">Pick a spot at the lunar south pole. Find where on Earth to test for it.</span></div>
 <div class="sub" id="libinfo"></div></header>
@@ -26,11 +26,11 @@
   <p class="mut">Both patches are 10 km across, drawn at the same vertical scale (heights x2). Drag to rotate. Colour: <label><input type="radio" name="col" value="slope" checked> slope</label> <label><input type="radio" name="col" value="height"> height</label>.
   Earth 3D patch is for display (open terrain tiles); all scores use Copernicus 90 m elevation.</p></section>
 <section class="card"><h2>How to read this</h2><div class="cols mut">
-  <p><b>Scores</b> run from 0 to 1. Each factor is the fraction that is the same between the lunar spot and the Earth site, the definition NASA uses to compare simulated lunar soil with real soil (Schrader et al. 2009). Weights and cut-offs are set by our team, not by NASA.</p>
+  <p><b>Scores</b> run from 0 to 1. "Roughness across scales" compares how slope changes between 80 m and 320 m and how height differences grow with distance (the Hurst exponent used in lunar roughness studies, Rosenburg et al. 2011). Each factor is the fraction that is the same between the lunar spot and the Earth site, the definition NASA uses to compare simulated lunar soil with real soil (Schrader et al. 2009). Weights and cut-offs are set by our team, not by NASA.</p>
   <p><b>Data.</b> Moon: NASA Lunar Reconnaissance Orbiter (LOLA elevation and slope, sunlight and permanent shadow maps, Diviner temperatures). Earth: Copernicus DEM 90 m (ESA), NASA MODIS vegetation and land surface temperature (2024), sun angles from latitude.</p>
-  <p><b>Limits.</b> Earth library covers bare, snow-free land between 55 S and 84 N; Antarctica is not included. Region centres are approximate. No Earth site reproduces lunar gravity, vacuum or radiation.</p></div></section>
+  <p><b>Limits.</b> Earth library covers bare, snow-free land from 55 S to 84 N, plus four ice-free Antarctic areas added by hand (not ice-filtered). Windows are 10 km, so features smaller than a few km are not resolved. Earth temperature is the 2024 monthly average. Region centres are approximate. No Earth site reproduces lunar gravity, vacuum or radiation.</p></div></section>
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 </body></html>

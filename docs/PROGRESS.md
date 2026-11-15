@@ -50,9 +50,16 @@ Live app: https://shashidharprakash33--moon-analog-finder-web.modal.run
 - Hosted on Modal at the link above.
 - Benchmark baseline measured (see `BENCHMARK.md`): coverage 7 of 10 known sites, recovery 6 of 7, rejection passing, stability 92% on average and 50% at worst.
 
+### Saturday night: audit and version 2
+- Audit of our own method against published work (see `AUDIT.md`). Main finding: the three terrain factors were 98 to 99% correlated, and terrain was measured at one scale only.
+- Added multi-scale roughness on both bodies (slope at 320 m, Hurst exponent). Lunar median 0.93 against a published 0.95 for the lunar highlands.
+- Rescanned Earth on Modal: 4,242 map squares, 236,193 windows, now including ice-free Antarctic areas and slightly vegetated ground.
+- Benchmark version 2: coverage 10 of 10, recovery 8 of 10, terrain factors now independent (see `BENCHMARK.md`).
+- App moved to the new library and scoring.
+
 ## Known problems and limits
-- Three known analog sites are missing from the Earth library: Teide and Craters of the Moon (slightly too vegetated for the cut-off) and the McMurdo Dry Valleys (Antarctica has no vegetation data in our mask).
-- Antarctica is not in the library. Coverage is 55 S to 84 N.
+- Antarctica is represented only by four ice-free areas added by hand, and those windows are not ice-filtered.
+- Earth windows do not overlap, so a match that straddles two windows can be missed.
 - Lunar region centres are approximate. NASA's release names the regions but gives no coordinates.
 - The 10 km window cannot resolve small features. Meteor Crater (about 1.2 km) is the clear failure case.
 - Darkness-survival rankings contain many tied sites, so their order is not meaningful.

@@ -1,9 +1,9 @@
 /* Moon Analog Finder. All scoring runs in the browser on precomputed NASA/ESA-derived data. */
 const $ = id => document.getElementById(id), f1 = v => v.toFixed(1), f2 = v => v.toFixed(2), pc = v => Math.round(v * 100) + "%";
-const BINS = 46, T_RANGE = 200, DARK_H = 120;
-const FACT = {slope: "Slope match", classes: "Slope classes (10 and 20 deg)", rough: "Roughness", lowsun: "Low sun angle", dark: "Long darkness", t_cold: "Cold", t_peak: "Peak temperature", bare: "Bare surface"};
+const BINS = 46, T_RANGE = 200, DARK_H = 120, H_RANGE = 0.4, RET_RANGE = 0.5;
+const FACT = {slope: "Slope match", classes: "Steep ground share (10 and 20 deg)", scale: "Roughness across scales", lowsun: "Low sun angle", dark: "Long darkness", t_cold: "Cold", t_peak: "Peak temperature", bare: "Bare surface"};
 const PURPOSES = {
-  mobility: {name: "Rover driving", desc: "Slopes and roughness like the lunar spot, on bare ground", gate: true, w: {slope: .35, classes: .30, rough: .35}},
+  mobility: {name: "Rover driving", desc: "Same steepness and same kind of terrain, on bare ground", gate: true, w: {slope: .5, scale: .5}},
   shadow: {name: "Shadow work and crater access", desc: "Steep access, low sun and cold", gate: true, w: {classes: .35, lowsun: .35, t_cold: .30}},
   darkness: {name: "Power and darkness survival", desc: "120+ hours of darkness, cold, low sun", gate: false, w: {dark: .45, t_cold: .35, lowsun: .20}}
 };
@@ -69,7 +69,7 @@ function renderSpot() {
    <div class="mut">${Math.abs(g("lat")).toFixed(2)}° S, ${lonTxt(g("lon"))} · 10 km window${S.spot.name ? " · centre approximate" : ""}</div>${flags}
    <div class="kv"><span>Median slope</span><span>${f1(g("slope_p50"))}°</span><span>Steepest tenth of ground</span><span>over ${f1(g("slope_p90"))}°</span>
    <span>Ground under 5° / 5 to 10°</span><span>${pc(c[0])} / ${pc(c[1])}</span><span>Ground 10 to 20° / over 20°</span><span>${pc(c[2])} / ${pc(c[3])}</span>
-   <span>Height range</span><span>${g("relief_m").toFixed(0)} m</span><span>Average sunlight</span><span>${pc(g("illum_mean"))}</span>
+   <span>Slope at 320 m / scaling number</span><span>${f1(g("slope320_p50"))}° / ${f2(g("hurst"))}</span><span>Height range</span><span>${g("relief_m").toFixed(0)} m</span><span>Average sunlight</span><span>${pc(g("illum_mean"))}</span>
    <span>Permanent shadow</span><span>${pc(psr)}</span><span>Average temperature</span><span>${isNaN(g("t_avg")) ? "no data" : g("t_avg").toFixed(0) + " K"}</span>
    <span>Peak temperature</span><span>${isNaN(g("t_max")) ? "no data" : g("t_max").toFixed(0) + " K"}</span><span>Highest sun angle</span><span>${f1(90 - Math.abs(g("lat")) + 1.54)}°</span></div>
    <p class="mut" style="margin-bottom:4px">Other regions:</p><div class="reg" id="regions2"></div>`;
@@ -86,26 +86,33 @@ function foms(j, m) {
   for (let b = 0; b < BINS; b++) { const v = E.hist[j * BINS + b] / 255; d += Math.abs(v - m.h[b]); c[b < 5 ? 0 : b < 10 ? 1 : b < 20 ? 2 : 3] += v; }
   const dc = Math.abs(c[0] - m.c[0]) + Math.abs(c[1] - m.c[1]) + Math.abs(c[2] - m.c[2]) + Math.abs(c[3] - m.c[3]);
   const nd = ev(j, "ndvi"), tn = ev(j, "t_night_min"), td = ev(j, "t_day_max");
-  return {slope: clip(1 - 0.5 * d), classes: clip(1 - 0.5 * dc), rough: 0.5 * (rat(ev(j, "tri_p50"), m.t50) + rat(ev(j, "tri_p90"), m.t90)),
+  return {slope: clip(1 - 0.5 * d), classes: clip(1 - 0.5 * dc), scale: 0.5 * (clip(1 - Math.abs(ev(j, "hurst") - m.H) / H_RANGE) + clip(1 - Math.abs(ev(j, "slope320_p50") / Math.max(ev(j, "slope_p50"), 1e-6) - m.ret) / RET_RANGE)),
     bare: isNaN(nd) ? 1 : clip(1 - (nd - 0.2) / 0.4), lowsun: clip(ev(j, "lowsun")), dark: clip(ev(j, "dark_h") / DARK_H),
     t_cold: isNaN(tn) || isNaN(m.tavg) ? 0 : clip(1 - Math.abs(tn - m.tavg) / T_RANGE), t_peak: isNaN(td) || isNaN(m.tmax) ? 0 : clip(1 - Math.abs(td - m.tmax) / T_RANGE)};
 }
 function afom(f, p) { let s = 0; for (const k in p.w) s += f[k] * p.w[k]; return p.gate ? s * f.bare : s; }
-function moonRef() { const i = S.spot.i, h = histOf(M.hist, i); return {h, c: classes(h), t50: mv(i, "tri_p50"), t90: mv(i, "tri_p90"), tavg: mv(i, "t_avg"), tmax: mv(i, "t_max")}; }
+function moonRef() { const i = S.spot.i, h = histOf(M.hist, i); return {h, c: classes(h), H: mv(i, "hurst"), ret: mv(i, "slope320_p50") / Math.max(mv(i, "slope_p50"), 1e-6), tavg: mv(i, "t_avg"), tmax: mv(i, "t_max")}; }
 function nearKnown(lat, lon) { for (const k of MAN.known) if (Math.abs(lat - k.lat) < 0.5 && Math.abs(lon - k.lon) * Math.cos(lat * Math.PI / 180) < 0.5) return k.name; return null; }
 function run() {
   if (!S.spot) return;
   const m = moonRef(), p = PURPOSES[S.purpose]; scores = new Float32Array(E.n);
   for (let j = 0; j < E.n; j++) scores[j] = afom(foms(j, m), p);
-  const order = Array.from(scores.keys()).sort((a, b) => scores[b] - scores[a]), seen = new Set(); topSites = [];
+  let bestS = 0; for (let j = 0; j < E.n; j++) if (scores[j] > bestS) bestS = scores[j];
+  let ties = 0; for (let j = 0; j < E.n; j++) if (scores[j] >= bestS - 0.01) ties++;
+  const tied = ties > 50, terr = j => { const f = foms(j, m); return 0.5 * f.slope + 0.5 * f.scale; };
+  let order;
+  if (tied) { const set = []; for (let j = 0; j < E.n; j++) if (scores[j] >= bestS - 0.01) set.push([terr(j), j]); set.sort((a, b) => b[0] - a[0]); order = set.map(x => x[1]); }
+  else order = Array.from(scores.keys()).sort((a, b) => scores[b] - scores[a]);
+  const seen = new Set(); topSites = [];
   for (const j of order) { const key = Math.floor(ev(j, "lat") / 2) + "," + Math.floor(ev(j, "lon") / 2); if (seen.has(key)) continue; seen.add(key); topSites.push(j); if (topSites.length == 15) break; }
   let strong = 0, part = 0; for (let j = 0; j < E.n; j++) { if (scores[j] >= 0.8) strong++; else if (scores[j] >= 0.5) part++; }
   const best = scores[topSites[0]];
   $("verdict").innerHTML = best >= 0.8 ? `<div class="flag ok">Strong matches exist: ${strong.toLocaleString()} of ${E.n.toLocaleString()} Earth windows score 0.8 or higher. Showing the best one per region.</div>`
     : best >= 0.5 ? `<div class="flag">No strong match on Earth for this spot and purpose. Best is a partial match (${f2(best)}). ${part.toLocaleString()} windows score 0.5 or higher. See which factor holds it back in step 4.</div>`
     : `<div class="flag bad">No useful Earth match found in the library for this spot and purpose (best ${f2(best)}).</div>`;
+  if (tied) $("verdict").innerHTML += `<div class="flag">${ties.toLocaleString()} Earth windows tie within 0.01 of the top score, so their order by score is not meaningful. The list shows the tied sites whose terrain is most like this lunar spot.</div>`;
   $("ranked").innerHTML = `<table><tr><th>#</th><th>Earth site (lat, lon)</th><th>Score</th></tr>` + topSites.map((j, r) => { const k = nearKnown(ev(j, "lat"), ev(j, "lon"));
-    return `<tr class="site" data-j="${j}"><td>${r + 1}</td><td>${coord(j)}${k ? `<span class="tag k">near ${k.split(" (")[0]}</span>` : `<span class="tag new">candidate</span>`}</td><td class="n"><b>${f2(scores[j])}</b></td></tr>`; }).join("") + "</table>";
+    return `<tr class="site" data-j="${j}"><td>${r + 1}</td><td>${coord(j)}${k ? `<span class="tag k">near ${k.split(" (")[0]}</span>` : `<span class="tag new">candidate</span>`}${ev(j, "nomask") ? `<span class="tag">Antarctic, ice not filtered</span>` : ""}</td><td class="n"><b>${f2(scores[j])}</b></td></tr>`; }).join("") + "</table>";
   document.querySelectorAll("#ranked tr.site").forEach(tr => tr.onclick = () => selectSite(+tr.dataset.j));
   earthMarkers.forEach(mk => earthMap.removeLayer(mk)); earthMarkers = [];
   topSites.forEach((j, r) => { const mk = L.circleMarker([ev(j, "lat"), ev(j, "lon")], {radius: 7, color: nearKnown(ev(j, "lat"), ev(j, "lon")) ? "#fbbf24" : "#4ade80", weight: 2, fillOpacity: .5}).addTo(earthMap).bindTooltip(`#${r + 1} · ${f2(scores[j])}`); mk.on("click", () => selectSite(j)); earthMarkers.push(mk); });
@@ -147,8 +154,8 @@ function selectSite(j) {
   const season = dh > 48 ? `Continuous darkness for about ${Math.round(dh / 24)} days each winter. ` : `Longest night about ${Math.round(dh)} hours. `;
   $("card").innerHTML = `<div class="cap">Scorecard · ${coord(j)}</div><div style="font-size:26px;font-weight:700">${f2(scores[j])} <span class="mut" style="font-size:13px;font-weight:400">for ${p.name.toLowerCase()}</span></div>${bars}
    <div class="bar zero"><span>Gravity, vacuum, radiation</span><i><b style="width:0"></b></i><span>0.00</span></div>
-   <div class="kv" style="margin-topSites:8px"><span>Median slope (Moon / Earth)</span><span>${f1(mv(S.spot.i, "slope_p50"))}° / ${f1(ev(j, "slope_p50"))}°</span>
-   <span>Coldest night on Earth site</span><span>${isNaN(ev(j, "t_night_min")) ? "no data" : ev(j, "t_night_min").toFixed(0) + " K"}</span><span>Moon spot average</span><span>${isNaN(m.tavg) ? "no data" : m.tavg.toFixed(0) + " K"}</span></div>
+   <div class="kv" style="margin-topSites:8px"><span>Median slope (Moon / Earth)</span><span>${f1(mv(S.spot.i, "slope_p50"))}° / ${f1(ev(j, "slope_p50"))}°</span><span>Slope at 320 m (Moon / Earth)</span><span>${f1(mv(S.spot.i, "slope320_p50"))}° / ${f1(ev(j, "slope320_p50"))}°</span><span>Scaling number (Moon / Earth)</span><span>${f2(m.H)} / ${f2(ev(j, "hurst"))}</span>
+   <span>Earth site: coldest month, average night</span><span>${isNaN(ev(j, "t_night_min")) ? "no data" : ev(j, "t_night_min").toFixed(0) + " K"}</span><span>Moon spot average</span><span>${isNaN(m.tavg) ? "no data" : m.tavg.toFixed(0) + " K"}</span></div>
    <p class="mut" style="margin:8px 0 0"><b>Where it breaks:</b> ${weak.length ? "weak on " + weak.join(", ") + ". " : "no weak factor for this purpose. "}${season}Lunar gravity (one sixth of Earth's), vacuum and radiation cannot be reproduced at any Earth site.
    <a target="_blank" href="https://worldview.earthdata.nasa.gov/?v=${(ev(j, "lon") - 1).toFixed(2)},${(la - 0.6).toFixed(2)},${(ev(j, "lon") + 1).toFixed(2)},${(la + 0.6).toFixed(2)}">Open in NASA Worldview</a></p>`;
   $("capE").textContent = `Earth: ${coord(j)}`; earthMap.flyTo([la, ev(j, "lon")], Math.max(earthMap.getZoom(), 4), {duration: 0.6});

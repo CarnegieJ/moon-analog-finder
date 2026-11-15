@@ -21,13 +21,33 @@ def tri(dem):
             s += (z[dy:dy+c.shape[0], dx:dx+c.shape[1]] - c) ** 2
     return np.sqrt(s)
 
+def hurst(dem, res, lags=(1, 2, 4, 8, 16)):
+    """Hurst exponent: how fast height differences grow with distance (Rosenburg et al. 2011 use the same idea on LOLA data).
+    Window is detrended with a plane; RMS height difference is measured at each lag in both grid directions;
+    H is the slope of log(RMS difference) against log(distance). Lags here span 80 m to 1.28 km at 80 m pixels."""
+    n, m = dem.shape; yy, xx = np.mgrid[0:n, 0:m]
+    A = np.c_[xx.ravel(), yy.ravel(), np.ones(n * m)]; coef, *_ = np.linalg.lstsq(A, dem.ravel(), rcond=None)
+    d = dem - (A @ coef).reshape(n, m); v = []
+    for l in lags:
+        a = d[:, l:] - d[:, :-l]; b = d[l:, :] - d[:-l, :]
+        v.append(np.sqrt((np.sum(a * a) + np.sum(b * b)) / (a.size + b.size)))
+    v = np.maximum(np.array(v), 1e-6); x = np.log(np.array(lags) * res)
+    return float(np.polyfit(x, np.log(v), 1)[0]), [float(q) for q in v]
+
+def coarse_slope(dem, res, k=4):
+    """Median slope after averaging the DEM into k x k blocks (baseline k * res, e.g. 320 m)."""
+    n = (dem.shape[0] // k) * k; c = dem[:n, :n].reshape(n // k, k, n // k, k).mean(axis=(1, 3))
+    s = horn_slope(c, res * k); return float(np.median(s)), float(np.percentile(s, 90))
+
 def features(dem, res):
     slope = horn_slope(dem, res)
     r = tri(dem)
     ok = np.isfinite(slope) & np.isfinite(r)
     s, r, d = slope[ok], r[ok], dem[np.isfinite(dem)]
     hist, _ = np.histogram(np.clip(s, 0, 45.999), bins=SLOPE_BINS)
+    H, rms = hurst(dem, res); s320, s320_90 = coarse_slope(dem, res)
     return {
+        "hurst": H, "rms_80": rms[0], "rms_1280": rms[-1], "slope320_p50": s320, "slope320_p90": s320_90,
         "slope_hist": (hist / hist.sum()).round(5).tolist(),
         "slope_p10": float(np.percentile(s, 10)), "slope_p50": float(np.percentile(s, 50)),
         "slope_p90": float(np.percentile(s, 90)), "slope_mean": float(s.mean()),

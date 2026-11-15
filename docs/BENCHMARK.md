@@ -19,6 +19,26 @@ Re-run with `python3 pipeline/benchmark.py` after every method change. Results l
 - Stability worst case (50%) is darkness survival on all three targets. Many Arctic sites tie, because darkness is capped at 120 hours and they all exceed it, so a small weight change reshuffles equal sites.
 - Rejection passes partly by construction: vegetated land is filtered out before scoring.
 
+## Version 2 (Sat Nov 14, late evening, library of 236,193 Earth windows)
+
+Changes: multi-scale roughness (slope at 320 m and Hurst exponent) replaced the single-scale roughness factor; "slope classes" removed from the rover-driving weights because it duplicated slope match; vegetation cut-off loosened from 0.20 to 0.30; four ice-free Antarctic areas and the Teide square added by hand.
+
+| # | Measure | Baseline | Version 2 |
+|---|---|---|---|
+| 1 | Coverage: known analog sites in the library | 7 of 10 | 10 of 10 |
+| 2 | Recovery: known sites reaching the top 1% for some lunar spot and purpose | 6 of 7 | 8 of 10 |
+| 3 | Rejection: forest and farmland controls, rover driving | 0.00 | 0.00 |
+| 4 | Stability: top 10 kept when one weight moves 10 points | mean 92%, worst 50% | mean 91%, worst 60% |
+| 5 | Independence: highest correlation between weighted terrain factors | 0.98 to 0.99 | 0.05 to 0.13 |
+| 6 | Combination rule: top-100 agreement, weighted sum vs geometric mean | not measured | 91 to 99 |
+
+Notes:
+- Lunar check: the median Hurst exponent over our 11,221 lunar spots is 0.93; Rosenburg et al. (2011) report a median of 0.95 for the lunar highlands (different distance range and window size).
+- Not in the top 1%: Meteor Crater (top 3.5%) and Craters of the Moon (top 8%). Both are small features inside flat surroundings; the 10 km window limit.
+- Strong matches (0.8 or higher) for rover driving at Malapert Massif fell from 2,624 windows to 24 in the app: matching steepness alone is easy, matching steepness and terrain character is rare.
+- A terrain tie-breaker inside the darkness score was tried and reverted (worst-case stability fell to 10%).
+- Not done: overlapping Earth windows (would make the library about four times larger, too heavy for in-browser scoring). Stated as a limit.
+
 ## Improvement plan (ranked by benchmark gain per hour)
 
 | Priority | Change | Fixes | Est. time | Status |
