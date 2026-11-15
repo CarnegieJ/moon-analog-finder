@@ -1,55 +1,162 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Moon Analog Finder</title>
+<link rel="preload" href="vendor/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="vendor/fonts/SpaceGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="style.css?v=27">
+<link rel="stylesheet" href="style.css?v=28">
 </head><body>
-<header><div><h1>Moon Analog Finder</h1><span class="sub">Pick a spot at the lunar south pole. Find where on Earth to test for it.</span></div>
-<div class="sub" id="libinfo"></div></header>
-<main>
-<section class="card" id="s1"><h2><b>1</b> Pick a lunar spot</h2>
-  <div class="row">
-    <div class="mapwrap"><div id="moonmap"></div>
-      <div class="layers" id="layers"></div><div id="legend"></div><div class="mut" style="margin-top:6px">Map layers can be combined. "Earth match" shows, for each lunar spot, the score of the best rover-terrain match found anywhere on Earth.</div></div>
-    <div class="side" id="spot"><p class="mut">Click anywhere on the map (80 to 90 degrees south), or choose a named region.</p><div id="regions"></div></div>
-  </div></section>
-<section class="card" id="s2"><h2><b>2</b> What do you need to test?</h2>
-  <div class="purposes" id="purposes"></div><div id="weights"></div></section>
-<section class="card" id="s3"><h2><b>3</b> Best Earth sites for this spot and purpose</h2>
-  <div class="fbar"><label>Search in <select id="fCountry"><option value="">the whole world</option></select></label>
-    <label>and/or within <input id="fKm" size="4" value="200"> km of <input id="fLat" placeholder="lat" size="7">, <input id="fLon" placeholder="lon" size="8"></label>
-    <label>below <input id="fAlt" size="5" placeholder="any"> m</label>
-    <button class="chip" onclick="applyFilter()">Apply</button><button class="chip" onclick="clearFilter()">Whole world</button>
-    <label class="sep">Score one Earth place: <input id="pLat" placeholder="lat" size="7">, <input id="pLon" placeholder="lon" size="8"></label><button class="chip" onclick="applyProbe()">Score it</button>
-    <span id="fMsg" class="mut"></span></div>
-  <div id="verdict" class="mut">Select a lunar spot first.</div>
-  <p class="mut" style="margin:0 0 8px">Limit the search to places your team can reach, or type the coordinates of a site you already use to see how it scores for this lunar spot. West and south are negative.</p>
-  <div class="row"><div class="mapwrap"><div id="earthmap"></div></div>
-  <div class="side"><div id="ranked"></div></div></div>
-  <h3>Known analog sites, scored the same way</h3><div id="known" class="mut"></div></section>
-<section class="card" id="s4"><h2><b>4</b> Compare: Moon spot and Earth site</h2>
-  <div class="row3"><div><div class="cap" id="capM">Moon</div><canvas id="c3m"></canvas></div>
-  <div><div class="cap" id="capE">Earth: select a site above</div><canvas id="c3e"></canvas></div>
-  <div id="card"></div></div>
-  <h3>Sun and shadow test</h3>
-  <div class="row"><div><div class="cap">Share of each 10 km patch in shadow as the Sun gets higher, averaged over all sun directions: <span style="color:#fbbf24">Moon</span>, <span style="color:#5cc8ff">Earth</span></div><div id="sunChart"></div></div>
-  <div><div class="sunctl"><label>Sun height <input type="range" id="sunEl" min="0.5" max="20" step="0.5" value="3"></label><label>Sun direction <input type="range" id="sunAz" min="0" max="15" step="1" value="0"></label></div>
-  <p id="sunLab" style="margin:8px 0"></p><p class="mut" id="sunTxt" style="margin:0 0 8px"></p>
-  <p class="mut" style="margin:0">Why it matters: at the lunar south pole the Sun stays within a few degrees of the horizon, so long shadows decide where a crew can see, drive and collect power. This shows whether the Earth site throws shadows the same way at the same sun height, and at what sun height to schedule a field test. Choose "sun and shadow" as the 3D colour to see where the shadows fall. Shadows from hills and crater walls only: nothing smaller than 200 m. The Moon side reproduces NASA's own sunlight and permanent shadow maps to within 2 percentage points on average (63 spots, same elevation data, so this checks our calculation). The Earth side uses open terrain tiles out to 55 km and has not been checked against measurements.</p></div></div>
-  <h3>Reach and line of sight test</h3>
-  <div class="row"><div><div class="sunctl"><label>Slope limit <input type="range" id="slopeLim" min="5" max="25" step="1" value="15"></label></div><div class="reach" id="reachTxt"></div></div>
-  <p class="mut" style="margin:0">Why it matters: a rover or a crew on foot can only use ground under its slope limit, and only the part that joins up without crossing steeper ground. A lander, relay mast or camera only serves the ground it can see. "Typical point" is the middle result of 25 evenly spaced viewpoints, 2 m above the ground; "best point" is the best of the 25. The Moon is small, so its surface curves away about 3.7 times faster than Earth's and hides more ground on flat terrain. Uses 200 m cells: rocks, small craters and anything else under 200 m is not seen, so real reach and view are lower than shown on both bodies.</p></div>
-  <div class="row" style="margin-top:14px"><div><div class="cap">Satellite view of the Earth site. The white square is the 10 km window. Landsat composite from the year 2000 (NASA GIBS), so recent changes are not shown; no coverage in Antarctica.</div><div id="sat"></div></div><div class="mut" id="satnote" style="align-self:center">Use this picture to check what the numbers cannot tell you: whether the ground is rock, sand, ice, water or built on. The terrain score does not know.</div></div>
-  <p class="mut">Both patches are 10 km across, drawn at the same vertical scale (heights x2), seen from above. The grey square is the flat base under each patch; the arrow marks the top edge of the window (north on Earth, towards 0 degrees longitude on the Moon map). Drag to rotate. Colour: <label><input type="radio" name="col" value="slope" checked> slope</label> <label><input type="radio" name="col" value="height"> height</label> <label><input type="radio" name="col" value="sun"> sun and shadow</label>.
-  Earth 3D patch is for display (open terrain tiles); all scores use Copernicus 90 m elevation.</p></section>
-<section class="card"><h2>How far to trust this</h2><div class="mut"><p style="margin:0 0 8px">This is a terrain screen, not a validated analog finder. Tested on 21 established lunar analog sites (15 from the ESA Catalogue of Planetary Analogues), the terrain score ranks a known site above random bare land 61 to 65% of the time, where 50% is chance. It recognises sites valued for their landscape (Atacama, Antarctic Dry Valleys, Haughton, Askja) and misses sites valued for one small feature or a rock type (Meteor Crater, Cinder Lake). It cannot see rocks, soil strength, dust or rock type, and no site has been field-checked. Use the results as candidates to investigate.</p>
-<p style="margin:0 0 8px"><b>How reliable is a terrain score?</b> We split each of 2,629 lunar squares into two halves with no shared pixels and asked the method to find each half's partner among all the others. It ranks the true partner first 10% of the time (0.04% by chance) and within the top 1% half of the time. Two halves of the same terrain score about 0.91; two unrelated lunar squares score about 0.74. So 0.87 and above means "same kind of terrain", 0.80 to 0.87 is a possible match, and below 0.80 is no evidence of similarity. The method recognises a kind of terrain, not a unique place.</p>
-<p style="margin:0">One score is uncertain by about 0.07: moving the 10 km square by 2.5 km changes it by 0.06, sampling different pixels by 0.03, and elevation data at 90 m against 30 m by 0.02. Sites closer than that cannot be ranked against each other. These limits apply to terrain only; light, cold and frozen ground factors have not been tested this way.</p></div></section>
-<section class="card"><h2>How to read this</h2><div class="cols mut">
-  <p><b>Scores</b> run from 0 to 1. "Roughness across scales" compares how slope changes between 80 m and 320 m and how height differences grow with distance (the Hurst exponent used in lunar roughness studies, Rosenburg et al. 2011). Each factor is the fraction that is the same between the lunar spot and the Earth site, the definition NASA uses to compare simulated lunar soil with real soil (Schrader et al. 2009). Weights and cut-offs are set by our team, not by NASA.</p>
-  <p><b>Data.</b> Moon: NASA Lunar Reconnaissance Orbiter (LOLA elevation and slope, sunlight and permanent shadow maps, Diviner temperatures). Earth: Copernicus DEM 90 m (ESA), NASA MODIS vegetation and land surface temperature (2024), sun angles from latitude, Global Permafrost Zonation Index at about 1 km (Gruber 2012, University of Zurich). Frozen ground on the Moon is the share of the window where NASA's Diviner model finds water ice stable in the ground. Place context: country from Natural Earth boundaries at 1:50 million (approximate near borders), nearest town from GeoNames (CC BY 4.0).</p>
-  <p><b>Limits.</b> Earth library covers bare, snow-free land from 55 S to 84 N, plus four ice-free Antarctic areas added by hand (not ice-filtered). Windows are 10 km, so features smaller than a few km are not resolved. Earth temperature is the 2024 monthly average. Region centres are approximate. The permafrost map stops at 60 S, so Antarctic sites are not scored for frozen ground. Not covered: rock and mineral type (the global rock map we looked at (GLiM) has no class for the feldspar-rich rock of the lunar highlands), dust (lunar dust is not moved by wind, so Earth dust maps describe a different process) and lava tubes (none are known at these south pole targets). No Earth site reproduces lunar gravity, vacuum or radiation.</p></div></section>
-</main>
+<div id="app" data-mode="moon" data-panel="">
+<header class="top">
+  <div class="brand"><span class="logo" aria-hidden="true"></span><h1>Moon Analog Finder</h1></div>
+  <nav class="chain" aria-label="Selection">
+    <button class="link" data-step="1" id="lnk1"><i class="mdot"></i><span><small>Moon spot</small><b id="st1">…</b></span></button>
+    <span class="arrow" aria-hidden="true">→</span>
+    <button class="link" data-pop="testPop" id="lnk2" aria-haspopup="dialog" aria-expanded="false"><span><small>Test<i id="customTag" hidden>custom</i></small><b id="st2">…</b></span><i class="caret"></i></button>
+    <span class="arrow" aria-hidden="true">→</span>
+    <button class="link" data-step="3" id="lnk3"><i class="edot"></i><span><small>Earth</small><b id="st3">…</b></span></button>
+  </nav>
+  <button class="ghost" id="howBtn" aria-haspopup="dialog">How it works</button>
+</header>
+
+<div class="work">
+  <aside class="left" aria-label="Choices">
+    <button class="handle" data-sheet aria-label="Resize panel"></button>
+    <div class="progress" id="progress" hidden></div>
+    <div class="lv" id="leftMoon">
+      <div class="eyebrow" id="artHead">Artemis III candidate regions (NASA, 2024)</div>
+      <div class="regions" id="regions" data-roving=".row"></div>
+      <div id="landWrap" hidden><div class="eyebrow gap">Landed spacecraft</div><div class="regions" id="landers" data-roving=".row"></div></div>
+      <div class="eyebrow gap">Any other spot</div>
+      <p class="mut small">Click the map between 80 and 90° S, or enter coordinates.</p>
+      <form class="coord" id="coordForm"><input id="inLat" placeholder="lat −86.0" size="9" aria-label="Lunar latitude"><input id="inLon" placeholder="lon east 0" size="9" aria-label="Lunar longitude east"><button class="chip">Go</button></form>
+      <span id="coordMsg" class="mut small" role="status"></span>
+    </div>
+    <div class="lv" id="leftEarth">
+      <div id="verdict" role="status"></div>
+      <div class="bar2"><span class="eyebrow">Best site per region</span><button class="chip" id="filterBtn" data-pop="filterPop" aria-haspopup="dialog" aria-expanded="false">Filter<b id="fN"></b></button></div>
+      <div id="fchips" aria-label="Active filters"></div>
+      <div id="ranked"></div>
+      <details class="more"><summary>Known analog sites, scored the same way</summary><div id="known" class="mut"></div></details>
+    </div>
+    <div class="lfoot" id="libinfo"></div>
+  </aside>
+
+  <div class="stage">
+    <div id="moonmap" class="map" aria-label="Map of the lunar south pole"></div>
+    <div id="earthmap" class="map" aria-label="Map of Earth"></div>
+    <div class="hint" id="hint" hidden>Click the map or choose a region</div>
+    <div class="toast" id="toast" role="status" hidden></div>
+
+    <div class="float bl only-moon"><button class="fab" data-pop="layersPop" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 2 2 6.5l8 4.5 8-4.5L10 2Zm-8 8 8 4.5 8-4.5M2 13.5 10 18l8-4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Layers<b id="layN"></b></button><div id="legend"></div></div>
+    <div class="pop bl" id="layersPop" role="dialog" aria-label="Moon map layers" hidden><div id="layers"></div><p class="mut small">Layers stack. "Earth match" is the best rover-terrain score found anywhere on Earth for each lunar spot.</p></div>
+
+    <div class="float bl only-earth"><button class="fab" id="earthFab" data-pop="elayersPop" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 2 2 6.5l8 4.5 8-4.5L10 2Zm-8 8 8 4.5 8-4.5M2 13.5 10 18l8-4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Layers</button>
+      <div class="legend2"><span class="leg"><i class="dot e"></i>candidate</span><span class="leg"><i class="dot k"></i>near a known analog</span><span class="leg"><i class="dot s"></i>known analog</span><span class="leg" id="legProbe" hidden><i class="dia"></i>your place</span></div></div>
+    <div class="pop bl" id="elayersPop" role="dialog" aria-label="Earth map layers" hidden><div class="eyebrow">Base map</div><div id="elayers" role="radiogroup" aria-label="Base map"></div><div class="eyebrow gap">On the map</div><div id="eover"></div><p class="flag" id="elayNote" role="status"></p></div>
+
+    <div class="pop tl" id="filterPop" role="dialog" aria-label="Filter Earth sites" hidden>
+      <form id="filterForm">
+        <label class="chk"><input type="checkbox" id="newOnly"> Hide sites near a known analog</label>
+        <div class="eyebrow gap">Limit the search area</div>
+        <div class="fbar"><label>Country <select id="fCountry"><option value="">the whole world</option></select></label></div>
+        <div class="fbar" style="margin-top:8px"><label>Within <input id="fKm" size="4" value="200" inputmode="decimal" aria-label="Distance in km"> km of</label><input id="fLat" placeholder="lat" size="6" inputmode="decimal" aria-label="Latitude"><input id="fLon" placeholder="lon" size="6" inputmode="decimal" aria-label="Longitude"><button type="button" class="chip" id="pickBtn">Pick on map</button></div>
+        <div class="fbar" style="margin-top:8px"><label>Below <input id="fAlt" size="5" placeholder="any" inputmode="decimal" aria-label="Altitude limit in metres"> m</label><span class="mut small" id="altNote"></span></div>
+        <div class="fbar"><span class="err" id="fMsg" role="alert"></span></div>
+        <div class="factions"><button class="chip" type="submit">Apply</button><button class="chip" type="button" id="clearBtn">Clear</button></div>
+      </form>
+      <form id="probeForm">
+        <div class="eyebrow gap">Score a place you already use</div>
+        <div class="fbar"><input id="pLat" placeholder="lat" size="6" inputmode="decimal" aria-label="Latitude of your place"><input id="pLon" placeholder="lon" size="6" inputmode="decimal" aria-label="Longitude of your place"><button class="chip">Score it</button></div>
+        <div class="fbar"><span class="err" id="pMsg" role="alert"></span></div>
+        <p class="mut small" style="margin:6px 0 0">West and south are negative.</p>
+      </form>
+    </div>
+  </div>
+
+  <aside class="right" id="pSpot" aria-label="Lunar spot">
+    <button class="handle" data-sheet aria-label="Resize panel"></button>
+    <button class="x" data-close aria-label="Close panel">×</button>
+    <div class="pbody" id="spot"></div>
+    <div class="pfoot"><button class="primary" id="ctaEarth">Find Earth matches</button></div>
+  </aside>
+
+  <aside class="right" id="pSite" aria-label="Earth site">
+    <button class="handle" data-sheet aria-label="Resize panel"></button>
+    <button class="x" data-close aria-label="Close panel">×</button>
+    <div class="phead"><div class="eyebrow" id="siteEyebrow"></div><h2 id="siteTitle" tabindex="-1"></h2><div class="mut small" id="siteSub"></div><div id="siteChips"></div><div id="siteNote" class="flag info"></div></div>
+    <div class="tabs" role="tablist" aria-label="Site details">
+      <button role="tab" id="t-match" aria-controls="tab-match" data-tab="match" class="on" aria-selected="true">Match</button><button role="tab" id="t-terrain" aria-controls="tab-terrain" data-tab="terrain" aria-selected="false" tabindex="-1">Terrain</button><button role="tab" id="t-sun" aria-controls="tab-sun" data-tab="sun" aria-selected="false" tabindex="-1">Sun</button><button role="tab" id="t-reach" aria-controls="tab-reach" data-tab="reach" aria-selected="false" tabindex="-1">Reach</button><button role="tab" id="t-sat" aria-controls="tab-sat" data-tab="sat" aria-selected="false" tabindex="-1">Imagery</button>
+    </div>
+    <div class="pbody">
+      <div class="tab on" id="tab-match" role="tabpanel" aria-labelledby="t-match"><div id="card"></div></div>
+      <div class="tab" id="tab-terrain" role="tabpanel" aria-labelledby="t-terrain">
+        <div class="thead"><div class="cap" id="capM"><i class="mdot"></i>Moon</div><button class="iconbtn" id="expandBtn" aria-label="Compare side by side">⤢ Compare</button></div>
+        <div class="cvw" id="slotM"><canvas id="c3m" aria-label="3D view of the lunar patch"></canvas><div class="cvs" id="cvsM"></div></div>
+        <div class="colpick" id="colpick">Colour <label><input type="radio" name="col" value="slope" checked> slope</label><label><input type="radio" name="col" value="height"> height</label><label><input type="radio" name="col" value="sun"> sun and shadow</label></div>
+        <div class="cap" id="capE"><i class="edot"></i>Earth</div>
+        <div class="cvw" id="slotE"><canvas id="c3e" aria-label="3D view of the Earth patch"></canvas><div class="cvs" id="cvsE"></div></div>
+        <details class="more"><summary>About these views</summary><p class="mut small">Both patches are 10 km across, drawn at the same vertical scale (heights x2), seen from above. The grey square is the flat base under each patch; the arrow marks the top edge of the window (north on Earth, towards 0 degrees longitude on the Moon map). Drag either one to rotate both. The Earth 3D patch is for display (open terrain tiles); all scores use Copernicus 90 m elevation.</p></details>
+      </div>
+      <div class="tab" id="tab-sun" role="tabpanel" aria-labelledby="t-sun">
+        <p id="sunLab"></p>
+        <div id="sunChart"></div>
+        <div class="cap">Share of the 10 km patch in shadow as the Sun rises, all directions: <span class="mc">Moon</span>, <span class="ec">Earth</span></div>
+        <div class="sunctl"><label>Sun height <input type="range" id="sunEl" min="0.5" max="20" step="0.5" value="3"></label><label>Sun direction <input type="range" id="sunAz" min="0" max="15" step="1" value="0"></label></div>
+        <div class="mut" id="sunTxt"></div>
+        <details class="more"><summary>Why this matters, and how far to trust it</summary><p class="mut small">At the lunar south pole the Sun stays within a few degrees of the horizon, so long shadows decide where a crew can see, drive and collect power. This shows whether the Earth site throws shadows the same way at the same sun height, and at what sun height to schedule a field test. Choose "sun and shadow" as the colour on the Terrain tab to see where the shadows fall. Shadows from hills and crater walls only: nothing smaller than 200 m. The Moon side reproduces NASA's own sunlight and permanent shadow maps to within 2 percentage points on average (63 spots, same elevation data, so this checks our calculation). The Earth side uses open terrain tiles out to 55 km and has not been checked against measurements.</p></details>
+      </div>
+      <div class="tab" id="tab-reach" role="tabpanel" aria-labelledby="t-reach">
+        <div class="sunctl"><label>Slope limit <input type="range" id="slopeLim" min="5" max="25" step="1" value="15"></label></div>
+        <div class="reach" id="reachTxt"></div>
+        <div class="mut small" id="reachNote"></div>
+        <details class="more"><summary>Why this matters, and how far to trust it</summary><p class="mut small">A rover or a crew on foot can only use ground under its slope limit, and only the part that joins up without crossing steeper ground. A lander, relay mast or camera only serves the ground it can see. "Typical point" is the middle result of 25 evenly spaced viewpoints, 2 m above the ground; "best point" is the best of the 25. The Moon is small, so its surface curves away about 3.7 times faster than Earth's and hides more ground on flat terrain. Uses 200 m cells: rocks, small craters and anything else under 200 m is not seen, so real reach and view are lower than shown on both bodies.</p></details>
+      </div>
+      <div class="tab" id="tab-sat" role="tabpanel" aria-labelledby="t-sat">
+        <div class="cap">Landsat composite, year 2000 (NASA GIBS). White square: the 10 km window.</div>
+        <div class="cvw"><div id="sat"></div><div class="cvs" id="satMsg"></div></div>
+        <details class="more"><summary>What to look for</summary><p class="mut small">Use this picture to check what the numbers cannot tell you: whether the ground is rock, sand, ice, water or built on. The terrain score does not know. The composite is from the year 2000, so recent changes are not shown; there is no coverage in Antarctica.</p><p class="small"><a id="wvLink" target="_blank" rel="noopener" href="https://worldview.earthdata.nasa.gov/">Open this site in NASA Worldview</a></p></details>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="pop" id="testPop" role="dialog" aria-label="Choose a test" hidden>
+  <div class="purposes" id="purposes"></div>
+  <p class="mut small" id="outNote"></p>
+  <details class="more" id="wDetails"><summary>Weights</summary><div id="weights"></div></details>
+</div>
+
+<div id="cmp" role="dialog" aria-modal="true" aria-label="Compare the two patches" hidden>
+  <div class="cmphead"><h2>Moon spot and Earth site, side by side</h2>
+    <div class="cmpctl"><span>Colour</span><label><input type="radio" name="col2" value="slope"> slope</label><label><input type="radio" name="col2" value="height"> height</label><label><input type="radio" name="col2" value="sun"> sun and shadow</label>
+      <label>Sun height <input type="range" id="cSunEl" min="0.5" max="20" step="0.5"><b id="cSunElV"></b></label><label>Sun direction <input type="range" id="cSunAz" min="0" max="15" step="1"></label>
+      <button class="ghost" id="cmpClose">Close</button></div></div>
+  <div class="cmpgrid"><div><div class="cap" id="cmpCapM"></div><div class="cvw" id="cmpM"></div></div><div><div class="cap" id="cmpCapE"></div><div class="cvw" id="cmpE"></div></div></div>
+</div>
+
+<div id="scrim"></div>
+<aside id="drawer" role="dialog" aria-label="How it works" aria-modal="true">
+  <div class="dhead"><h2>How it works</h2><button class="ghost" id="closeHow">Close</button></div>
+  <h3>The method in four lines</h3>
+  <ol class="mut"><li>Describe the lunar spot: a 10 km window measured for slope, roughness, sunlight, permanent shadow, temperature and stable ground ice.</li><li>Describe every Earth candidate the same way, on the same 80 m grid, with the same code. Only bare, snow-free land is kept.</li><li>Score each factor from 0 to 1 as the fraction that is the same, then combine the factors with weights set by the test.</li><li>Rank the Earth windows, and always state where the analogy breaks.</li></ol>
+  <h3>How far to trust this</h3>
+  <div class="mut" id="trust"><p>This is a terrain screen, not a validated analog finder. Tested on 21 established lunar analog sites (15 from the ESA Catalogue of Planetary Analogues), the terrain score ranks a known site above random bare land 61 to 65% of the time, where 50% is chance. It recognises sites valued for their landscape (Atacama, Antarctic Dry Valleys, Haughton, Askja) and misses sites valued for one small feature or a rock type (Meteor Crater, Cinder Lake). It cannot see rocks, soil strength, dust or rock type, and no site has been field-checked. Use the results as candidates to investigate.</p>
+  <p><b>How reliable is a terrain score?</b> We split each of 2,629 lunar squares into two halves with no shared pixels and asked the method to find each half's partner among all the others. It ranks the true partner first 10% of the time (0.04% by chance) and within the top 1% half of the time. Two halves of the same terrain score about 0.91; two unrelated lunar squares score about 0.74. So 0.87 and above means "same kind of terrain", 0.80 to 0.87 is a possible match, and below 0.80 is no evidence of similarity. The method recognises a kind of terrain, not a unique place.</p>
+  <p>One score is uncertain by about 0.07: moving the 10 km square by 2.5 km changes it by 0.06, sampling different pixels by 0.03, and elevation data at 90 m against 30 m by 0.02. Sites closer than that cannot be ranked against each other. These limits apply to terrain only; light, cold and frozen ground factors have not been tested this way.</p>
+  <p>Weights and cut-offs are set by our team, not by NASA. No Earth site reproduces lunar gravity, vacuum or radiation.</p></div>
+  <h3>How to read this</h3>
+  <div class="mut"><p><b>Scores</b> run from 0 to 1. "Roughness across scales" compares how slope changes between 80 m and 320 m and how height differences grow with distance (the Hurst exponent used in lunar roughness studies, Rosenburg et al. 2011). Each factor is the fraction that is the same between the lunar spot and the Earth site, the definition NASA uses to compare simulated lunar soil with real soil (Schrader et al. 2009). Weights and cut-offs are set by our team, not by NASA.</p>
+  <p><b>Scoring.</b> The hosted app scores all 3.8 million overlapping Earth squares on a server and returns the best square per 2-degree region. If the server cannot be reached, the app scores its built-in library of 236,193 windows in your browser instead; the footer says which one you are seeing. The outlook on each test card is always counted on the built-in library.</p>
+  <p><b>Data.</b> Moon: NASA Lunar Reconnaissance Orbiter (LOLA elevation and slope, sunlight and permanent shadow maps, Diviner temperatures). Earth: Copernicus DEM 90 m (ESA), NASA MODIS vegetation and land surface temperature (2024), sun angles from latitude, Global Permafrost Zonation Index at about 1 km (Gruber 2012, University of Zurich). Frozen ground on the Moon is the share of the window where NASA's Diviner model finds water ice stable in the ground. Place context: country from Natural Earth boundaries at 1:50 million (approximate near borders), nearest town from GeoNames (CC BY 4.0). Map imagery: NASA GIBS (Blue Marble, Landsat WELD), OpenStreetMap; land outlines from Natural Earth. Display terrain: open Terrarium elevation tiles (AWS Open Data).</p>
+  <p><b>Limits.</b> Earth library covers bare, snow-free land from 55 S to 84 N, plus four ice-free Antarctic areas added by hand (not ice-filtered). Windows are 10 km, so features smaller than a few km are not resolved. Earth temperature is the 2024 monthly average. Region centres are approximate. The permafrost map stops at 60 S, so Antarctic sites are not scored for frozen ground. Not covered: rock and mineral type (the global rock map we looked at (GLiM) has no class for the feldspar-rich rock of the lunar highlands), dust (lunar dust is not moved by wind, so Earth dust maps describe a different process) and lava tubes (none are known at these south pole targets). No Earth site reproduces lunar gravity, vacuum or radiation.</p>
+  <p>An independent NASA Space Apps Challenge 2026 project, not a NASA product. Built with the help of Claude (Anthropic) for research, planning and code; all scores come from the data and code in the repository, not from an AI model.</p></div>
+  <h3>Keyboard</h3>
+  <p class="mut">Tab moves between the top bar, the list, the map and the panel. In a list, the arrow keys move between rows and Enter opens one. In the site panel, the arrow keys switch tabs. Esc closes the open popover, panel or this drawer.</p>
+</aside>
+</div>
+<div id="printSheet"></div>
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/three.min.js"></script>
-<script src="app.js?v=27"></script>
+<script src="ui.js?v=28"></script>
+<script src="app.js?v=28"></script>
 </body></html>
