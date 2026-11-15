@@ -81,7 +81,7 @@ button{font:inherit;color:inherit;cursor:pointer}a{color:var(--moon)}input,selec
 .tag.k{border-color:#55617a;color:#c9d1dc}.tag.new{border-color:var(--earth);color:var(--earth)}.tag.strong{border-color:var(--ok);color:var(--ok)}.tag.possible{border-color:var(--warn);color:var(--warn)}.tag.none{border-color:var(--bad);color:var(--bad)}
 .flag{margin:10px 0;padding:9px 11px;border-radius:9px;font-size:12.5px;line-height:1.45;border:1px solid #6b6033;color:var(--warn);background:#221f10}
 .flag.ok{border-color:#2f6a4e;color:var(--ok);background:#0f2219}.flag.bad{border-color:#7a3f3b;color:var(--bad);background:#261312}.flag.info{border-color:var(--line);color:var(--mut);background:var(--bg)}
-.flag .chip{margin-top:8px;display:inline-block}
+.flag .chip{margin-top:8px;display:inline-block}.flag .vh{display:block;font:600 14.5px/1.35 var(--head);margin-bottom:4px}
 .kv{display:grid;grid-template-columns:minmax(50%,1fr) minmax(0,1fr);gap:5px 12px;font-size:12.5px}.kv span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums}.kv span:nth-child(odd){color:var(--mut)}
 details.more{border-top:1px solid var(--line);padding:10px 0;margin-top:12px}details.more>summary{cursor:pointer;font-weight:600;font-size:12.5px}details.more[open]>summary{margin-bottom:10px}
 .coord,.fbar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--mut)}

@@ -16,7 +16,10 @@ if modal.is_local():
                   .add_local_file(os.path.join(HERE, "known_sites.csv"), "/root/known_sites.csv")
                   .add_local_file(os.path.join(ROOT, "data", "cache", "countries-50m.json"), "/root/countries-50m.json"))
 
-@app.function(image=image, scaledown_window=900, max_containers=2, memory=8192, cpu=4, volumes={"/library": vol})
+# Keep one container (and the loaded library) running so nobody waits for a cold start. Costs money while deployed:
+# on by default for the public app, off for test copies; override with MAF_MIN=0 or MAF_MIN=1 when deploying.
+MIN = int(os.environ.get("MAF_MIN", "1" if app.name == "moon-analog-finder" else "0"))
+@app.function(image=image, scaledown_window=900, min_containers=MIN, max_containers=2, memory=8192, cpu=4, volumes={"/library": vol})
 @modal.concurrent(max_inputs=20)
 @modal.asgi_app()
 def web():
