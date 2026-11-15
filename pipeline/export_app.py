@@ -15,13 +15,13 @@ np.nan_to_num(dem).round().astype("int16").tofile("app/data/moon_dem400.bin")
 dem2 = rasterio.open("data/moon/LDEM_80S_80MPP_ADJ.TIF").read(1, out_shape=(3040, 3040), resampling=Resampling.average)
 np.nan_to_num(dem2).round().astype("int16").tofile("app/data/moon_dem200.bin")
 known = [{"name": r["name"], "lat": float(r["lat"]), "lon": float(r["lon"]), "why": r["use"], "source": r["use_source"]} for r in csv.DictReader(open("pipeline/known_sites.csv")) if r["status"].startswith("verified")]
-regions = [{"name": t["name"], "lat": t["lat"], "lon": t["lon"], "x": t["x"], "y": t["y"], "note": t["note"]} for t in json.load(open("data/out/moon_profiles.json"))]
+regions = [{"name": t["name"], "lat": t["lat"], "lon": t["lon"], "x": t["x"], "y": t["y"], "note": t["note"], "kind": t.get("kind", "artemis")} for t in json.load(open("data/out/moon_profiles.json"))]   # kind: "artemis" for the nine NASA candidate regions
 # Real landed spacecraft at the south pole: coordinates from NASA NSSDC "Lunar Artifact Impacts and Landings" table (checked Nov 15, 2026)
 import math
 for nm, la, lo in (("IM-2 lander (2025)", -84.7906, 29.1957), ("IM-1 Odysseus lander (2024)", -80.13, 1.44)):
     r = 2 * 1737400.0 * math.tan(math.radians(90 + la) / 2); x, y = r * math.sin(math.radians(lo)), r * math.cos(math.radians(lo))
     if math.hypot(round(x / 5000) * 5000, round(y / 5000) * 5000) <= 299000:
-        regions.append({"name": nm, "lat": la, "lon": lo, "x": x, "y": y, "note": "NASA NSSDC coordinates", "cited": True})
+        regions.append({"name": nm, "lat": la, "lon": lo, "x": x, "y": y, "note": "NASA NSSDC coordinates", "cited": True, "kind": "lander"})
 json.dump({"earth": {"n": len(s), "cols": ecols, "bins": 46}, "moon": {"n": len(g), "cols": mcols, "bins": 46, "step_m": 5000, "dem": {"n": 1520, "res_m": 400, "half_m": 304000}, "dem200": {"n": 3040, "res_m": 200, "half_m": 304000}},
            "known": known, "regions": regions, "squares_scanned": 4242}, open("app/data/manifest.json", "w"))
 print("earth", len(s), "moon", len(g))
