@@ -23,4 +23,5 @@ canvas{width:100%;height:300px;border-radius:10px;background:#0a0d12;border:1px 
 .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}@media(max-width:980px){.cols{grid-template-columns:1fr}}.cols p{margin:0}
 #weights{margin-top:10px;display:flex;gap:18px;flex-wrap:wrap;font-size:13px;color:var(--mut)}#weights input{vertical-align:middle;width:110px}
 .reg{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}a{color:var(--acc)}
+.earth-selection-outline{background:transparent;border:0}.earth-selection-outline span{display:block;width:22px;height:22px;border:2px solid var(--ok)}
 .leaflet-container{background:#000;font:inherit}

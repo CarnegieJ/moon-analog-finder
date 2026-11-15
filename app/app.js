@@ -8,7 +8,7 @@ const PURPOSES = {
   darkness: {name: "Power and darkness survival", desc: "120+ hours of darkness, cold, low sun", gate: false, w: {dark: .45, t_cold: .35, lowsun: .20}}
 };
 const S = {purpose: "mobility", spot: null, site: null, col: "slope", rot: {x: -1.05, z: 0.6}};
-let MAN, E, M, DEM, moonMap, earthMap, spotRect, earthMarkers = [], scores = null, topSites = [];
+let MAN, E, M, DEM, moonMap, earthMap, spotRect, earthMarkers = [], earthSelection = null, scores = null, topSites = [];
 
 const DATA_V = "6";  // bump whenever files in data/ or layers/ change, so browsers do not reuse old copies
 async function bin(u, T) { return new T(await (await fetch(u + "?v=" + DATA_V)).arrayBuffer()); }
@@ -147,6 +147,15 @@ function buildEarthMap() {
 }
 
 /* ---------- site scorecard ---------- */
+function updateEarthSelection(latlng) {
+  if (!latlng) {
+    if (earthSelection) earthMap.removeLayer(earthSelection);
+    earthSelection = null;
+    return;
+  }
+  if (earthSelection) earthSelection.setLatLng(latlng);
+  else earthSelection = L.marker(latlng, {icon: L.divIcon({className: "earth-selection-outline", html: "<span></span>", iconSize: [22, 22], iconAnchor: [11, 11]}), interactive: false, keyboard: false, zIndexOffset: 1000}).addTo(earthMap);
+}
 function selectSite(j) {
   S.site = j; document.querySelectorAll("tr.site").forEach(tr => tr.classList.toggle("sel", +tr.dataset.j == j));
   const m = moonRef(), f = foms(j, m), p = PURPOSES[S.purpose], la = ev(j, "lat"), dh = ev(j, "dark_h");
@@ -159,7 +168,7 @@ function selectSite(j) {
    <span>Earth site: coldest month, average night</span><span>${isNaN(ev(j, "t_night_min")) ? "no data" : ev(j, "t_night_min").toFixed(0) + " K"}</span><span>Moon spot average</span><span>${isNaN(m.tavg) ? "no data" : m.tavg.toFixed(0) + " K"}</span></div>
    <p class="mut" style="margin:8px 0 0"><b>Where it breaks:</b> ${weak.length ? "weak on " + weak.join(", ") + ". " : "no weak factor for this purpose. "}${season}Lunar gravity (one sixth of Earth's), vacuum and radiation cannot be reproduced at any Earth site.
    <a target="_blank" href="https://worldview.earthdata.nasa.gov/?v=${(ev(j, "lon") - 1).toFixed(2)},${(la - 0.6).toFixed(2)},${(ev(j, "lon") + 1).toFixed(2)},${(la + 0.6).toFixed(2)}">Open in NASA Worldview</a></p>`;
-  $("capE").textContent = `Earth: ${coord(j)}`; earthMap.flyTo([la, ev(j, "lon")], Math.max(earthMap.getZoom(), 4), {duration: 0.6});
+  $("capE").textContent = `Earth: ${coord(j)}`; updateEarthSelection([la, ev(j, "lon")]); earthMap.flyTo([la, ev(j, "lon")], Math.max(earthMap.getZoom(), 4), {duration: 0.6});
   loadEarthPatch(j); draw3d();
 }
 
