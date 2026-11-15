@@ -102,3 +102,25 @@ Reading:
 1. Public GitHub repo and hosted app (public link, no login).
 2. 30-second video with English subtitles.
 3. Submission form text: summary, description, NASA data used, other data, references, AI use.
+
+## Added Sun Nov 15: overlap library and identity tests
+
+**Overlap library (scan version 3).** 10 km squares placed every 2.5 km, including squares that cross map-tile edges: 3,779,722 windows (old library: 236,193). Moving a square by 2.5 km changes the rover-terrain score by 0.06 on average (0.17 for the worst tenth), measured on 64 map squares. The known-site check does not improve: 61.3% on the old grid, 62.1% with all placements (`pipeline/benchmark_auc_v3.py`). Overlap makes placement precise; it does not add skill.
+
+**Identity test, Moon (`pipeline/identity_test.py`).** 2,629 non-overlapping lunar squares, each split into a checkerboard of 2.5 km tiles. Fingerprint A from the black tiles is compared with fingerprint B (white tiles) of every square. Chance of ranking the true partner first: 0.04%.
+
+| Scoring | True partner first | In top 10 | In top 1% | Same-terrain score (mean) | Other-terrain score (mean) |
+|---|---|---|---|---|---|
+| Current (slope chart + roughness across scales) | 9.9% | 34.2% | 49.8% | 0.906 | 0.702 |
+| Slope chart only | 8.7% | 31.2% | 46.1% | 0.876 | 0.586 |
+| Scaling number only | 0.2% | 1.9% | 4.0% | 0.940 | 0.842 |
+| Relief only | 0.4% | 4.3% | 8.7% | 0.866 | 0.526 |
+| Current + relief | 8.1% | 29.0% | 43.2% | 0.893 | 0.643 |
+
+**Identity test, Earth (`pipeline/identity_earth.py`).** 728 squares where the library entry (Copernicus 90 m data) is compared with the same square from Copernicus 30 m data. True partner first 99.5% of the time; same-place score 0.983 on average. The 90 m product is derived from the 30 m product, so this measures the error added by resolution and resampling (about 0.02), not an independent sensor.
+
+**What this says.**
+- The current score is the best of the variants tested. Relief does not help. The scaling number alone is a poor fingerprint, although it adds a little to the slope chart.
+- Calibration for reading a score: two halves of the same lunar terrain score about 0.91 (0.87 for the lowest tenth); two unrelated lunar squares score about 0.70. A score near 0.70 therefore means "no more alike than random lunar terrain".
+- The fingerprint is not unique: the true partner is first only 10% of the time, because many lunar squares have near-identical slope statistics.
+- Limit of these tests: they measure whether the fingerprint is repeatable and specific. They do not show that a matching Earth site is a useful analog.

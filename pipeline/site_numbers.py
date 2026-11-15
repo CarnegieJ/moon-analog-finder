@@ -3,7 +3,7 @@ import json, glob, sys, os, math, numpy as np
 from pyhdf.SD import SD
 sys.path.insert(0, os.path.dirname(__file__))
 import lib_score as ls
-SITES = {"East Greenland (Andree Land area)": (73.95, -25.18), "South-east Pamir, Tajikistan": (37.32, 73.11), "Tarso Tousside, Tibesti, Chad": (21.05, 16.45)}
+SITES = {"East Greenland (Andree Land area)": (73.95, -25.18), "South-east Pamir (Afghanistan and Tajikistan border)": (37.32, 73.11), "Tarso Tousside, Tibesti, Chad": (21.05, 16.45)}
 L = ls.load(); moon = json.load(open("data/out/moon_profiles.json")); grid = json.load(open("data/out/moon_grid.json"))
 land = [g for g in grid if g["lat"] <= -84 and g["psr_share"] < 0.15 and g["illum_mean"] > 0.25 and g["t_avg"] is not None]
 lst = sorted(glob.glob("data/modis/lst/*.hdf")); vi = sorted(glob.glob("data/modis/ndvi/*.hdf"))

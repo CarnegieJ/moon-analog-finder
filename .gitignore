@@ -7,3 +7,4 @@ node_modules/
 # local caches and editor files
 .vscode/
 *.log
+/_to_delete/

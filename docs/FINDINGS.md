@@ -31,6 +31,15 @@ Tested against 21 known lunar analog sites (15 from the ESA Catalogue of Planeta
 
 Details: `BENCHMARK.md`.
 
+### 1.4 Which parts of the lunar south pole can be rehearsed on Earth, and which cannot
+Every one of the 11,221 lunar spots was scored against the whole Earth library (`pipeline/modal_testability.py`).
+- Rover-scale terrain: 96% of lunar spots have at least one Earth window scoring 0.8 or higher. For spots suitable for landing the figure is also 96%.
+- The steepest lunar ground is the exception. Where the median slope exceeds 20 degrees, only 33% of spots have such a match; between 15 and 20 degrees, 70%.
+- For 62% of lunar spots the single best terrain match is in Greenland or the Canadian Arctic, and for 21% it is in the central Andes.
+- Shadow work, as we score it, has no strong stand-in anywhere: no lunar spot has an Earth window at 0.7 or higher, mainly because Earth is far warmer than shadowed lunar ground.
+
+Caution: taking the best of 236,193 windows will always find something that scores well, and the terrain score has only modest measured skill. This map shows where Earth offers candidates, not where a proven analog exists. It is available in the app as the "Earth match" layer.
+
 ---
 
 ## 2. Three characterised candidate sites
@@ -77,11 +86,11 @@ Common to all three (measured): average terrain score 0.75 to 0.76 across the 1,
 
 **How it could help:** rehearsing rover traverses and navigation on bare, kilometre-smooth terrain under a low sun with long shadows, and testing power and operations through a real polar night.
 
-### 2.2 South-east Pamir, Tajikistan (37.32 N, 73.11 E)
+### 2.2 South-east Pamir, on the Afghanistan and Tajikistan border (37.32 N, 73.11 E)
 
 | | |
 |---|---|
-| Stands in for | Typical landing-like terrain near the lunar south pole, for traverse-scale terrain on bare ground with road access |
+| Stands in for | Typical landing-like terrain near the lunar south pole, for traverse-scale terrain on bare ground |
 | Terrain score | 0.76 average over landing-like spots; 0.69 against Malapert Massif; 0.68 against de Gerlache Rim 2 |
 | Status | Screened candidate |
 
@@ -100,13 +109,17 @@ Common to all three (measured): average terrain score 0.75 to 0.76 across the 1,
 - Cited: the high Pamir plateau is a cold continental desert environment, in one of the most tectonically active places in the world (UNESCO World Heritage listing for Tajik National Park). Lake Zorkul, about 55 km east, lies at 4,130 m.
 - Not established: rock type at the window; elevation of the window itself.
 
+**Which country (measured, with a caution)**
+- On Natural Earth boundaries at 1:50 million, the window centre falls in Afghanistan (the Wakhan Corridor), about 4 km from the border with Tajikistan. That map scale is too coarse to be certain, and the 10 km window probably spans both countries. An earlier version of this brief placed the site in Tajikistan; that was a naming error, corrected here.
+- Nearest town of over 1,000 people on the Afghan side: Khandud, about 81 km (GeoNames).
+
 **Operations**
-- Cited: the Pamir Highway is the region's main road. Murghob, the nearest town named on the pages read (about 120 km north-north-east), sits at about 3,600 m with an annual mean of -3.9 C. Tajik National Park covers almost the whole Pamir and has the country's highest protection status; the Zorkul Nature Reserve is nearby.
-- Not established: whether the window is inside the park, and what permits a border-zone site needs.
+- Cited, for the Tajik side: the Pamir Highway is the region's main road. Murghob, the nearest town named on the pages read (about 120 km north-north-east), sits at about 3,600 m with an annual mean of -3.9 C. Tajik National Park covers almost the whole Pamir and has the country's highest protection status; the Zorkul Nature Reserve is nearby.
+- Not established: which country the usable ground is in, whether it lies inside a protected area on either side, what permits a border-zone site needs, and current security and access conditions on the Afghan side. Until those are known this site should not be described as reachable by road.
 
 **Prior analog use:** none found for the Pamir on the pages read. A related region is in use: ISRO began the Ladakh Human Analogue Mission at Leh, India, in November 2024, so high Asian cold deserts are being taken up as analogs.
 
-**How it could help:** a road-reachable site for long rover traverse tests on bare, lunar-like terrain at traverse scale, with strong daily thermal cycling.
+**How it could help:** if access proves possible, long rover traverse tests on bare, lunar-like terrain at traverse scale, with strong daily thermal cycling. Otherwise, like Tarso Tousside, as a terrain model for simulation.
 
 ### 2.3 Tarso Tousside, Tibesti massif, Chad (21.05 N, 16.45 E)
 
@@ -138,7 +151,7 @@ Common to all three (measured): average terrain score 0.75 to 0.76 across the 1,
 
 ## 3. What these three show together
 
-| | East Greenland | South-east Pamir | Tarso Tousside |
+| | East Greenland | South-east Pamir (border zone) | Tarso Tousside |
 |---|---|---|---|
 | Terrain character | Strong | Strong | Strongest |
 | Steepness of the massifs | Weak | Weak | Partial |
@@ -146,7 +159,7 @@ Common to all three (measured): average terrain score 0.75 to 0.76 across the 1,
 | Long darkness | Yes | No | No |
 | Cold | Partial (summer peak only) | Partial (nights) | No |
 | Bare ground season | June to September | Most of the year | All year |
-| Field access | Remote, by air | By road | Not at present |
+| Field access | Remote, by air | Not established (international border zone) | Not at present |
 | Rock type like lunar highlands | Not established | Not established | No (volcanic) |
 
 No single site matches on every dimension. The polar site adds the light and darkness that the other two lack, but only when the ground is snow-covered. That trade-off is itself a result.

@@ -5,7 +5,7 @@ NASA Space Apps Challenge 2026, "Identify Earth Locations that Analog the Perman
 Pick a spot at the lunar south pole, say what you need to test, and get the Earth sites that best stand in for it, with a score per factor and a clear statement of where the analogy breaks.
 
 ## Findings
-See `docs/FINDINGS.md` for what the search found and three characterised candidate sites (East Greenland, the south-east Pamir and Tarso Tousside in the Tibesti massif), with what matches, where each analogy breaks and what is not established.
+See `docs/FINDINGS.md` for what the search found and three characterised candidate sites (East Greenland, the south-east Pamir on the Afghanistan and Tajikistan border, and Tarso Tousside in the Tibesti massif), with what matches, where each analogy breaks and what is not established.
 
 Live app: https://shashidharprakash33--moon-analog-finder-web.modal.run
 

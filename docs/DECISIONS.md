@@ -28,3 +28,9 @@ Primary user: an engineer or field-test planner who has a lunar south pole site 
 | 20 | A benchmark of four measures is re-run after every method change | Without a fixed test we cannot tell whether a change improved the tool. | docs/BENCHMARK.md | Team-set |
 | 21 | Mars, radar roughness, image similarity and a full weighting exercise were cut | None could be finished and validated in two days by one person. | Time budget | Team-set |
 
+
+## Added Sun Nov 15 (afternoon)
+
+- **Sun, reach and line-of-sight tests** (app step 4, `pipeline/shadow_sim.py`). Why: shadow length, joined-up drivable ground and visible ground decide what a field rehearsal can test, and the terrain score cannot see them. Check: the Moon-side shadow calculation reproduces NASA's average sunlight map within 1.5 percentage points and the permanent shadow map within 1.2 on average over 63 spots. Both use the same LOLA elevation, so this checks the calculation only. The Earth side is unchecked.
+- **Frozen ground factor and "Ice drilling and digging" purpose** (`pipeline/permafrost.py`). Why: the challenge lists ice and permafrost, and ice is the main reason for going to the south pole. Moon: share of the window with stable ground ice in the Diviner model. Earth: Global Permafrost Zonation Index (Gruber 2012). Score: smaller share divided by larger share. Weights 50 frozen, 30 cold, 20 slope, team-set. Checks: for Haworth, Haughton (Devon Island) ranks in the top 1% and Axel Heiberg Island in the top 2% of 236,193 windows; top-100 overlap under 20% weight changes is 95% on average, 79% worst. Limits: the map stops at 60 S (Antarctic Dry Valleys not scored); permafrost is frozen soil near 260 K, not lunar ice.
+- **Not built, on purpose:** dust (lunar dust is not wind-driven), lava tubes (none known at these targets), rock type as a score (the GLiM rock classes have no anorthosite class; not verified against other maps).
