@@ -12,7 +12,7 @@ mcols = ["x", "y", "lat", "lon", "hurst", "slope320_p50", "psr_share", "illum_me
 np.array([[np.nan if r[k] is None else r[k] for k in mcols] for r in g], "float32").tofile("app/data/moon_meta.bin")
 dem = rasterio.open("data/moon/LDEM_80S_80MPP_ADJ.TIF").read(1, out_shape=(1520, 1520), resampling=Resampling.average)
 np.nan_to_num(dem).round().astype("int16").tofile("app/data/moon_dem400.bin")
-known = [{"name": r["name"], "lat": float(r["lat"]), "lon": float(r["lon"]), "why": r["why"]} for r in csv.DictReader(open("data/sites_earth.csv")) if r["group"] == "known"]
+known = [{"name": r["name"], "lat": float(r["lat"]), "lon": float(r["lon"]), "why": r["use"], "source": r["use_source"]} for r in csv.DictReader(open("pipeline/known_sites.csv")) if r["status"].startswith("verified")]
 regions = [{"name": t["name"], "lat": t["lat"], "lon": t["lon"], "x": t["x"], "y": t["y"], "note": t["note"]} for t in json.load(open("data/out/moon_profiles.json"))]
 json.dump({"earth": {"n": len(s), "cols": ecols, "bins": 46}, "moon": {"n": len(g), "cols": mcols, "bins": 46, "step_m": 5000, "dem": {"n": 1520, "res_m": 400, "half_m": 304000}},
            "known": known, "regions": regions, "squares_scanned": 4242}, open("app/data/manifest.json", "w"))

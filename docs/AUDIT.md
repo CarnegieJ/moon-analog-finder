@@ -42,3 +42,19 @@ Could not be read: Stern et al. 2025 (analog field site framework for ocean worl
 3. **Relabel temperature** and state the cold limit plainly (findings 3 and 4).
 4. **Ties** shown as ties, broken by terrain match (finding 5).
 5. Future work, stated in the submission: terrain-aware illumination, land-cover and mineral data, sensor bias check, variability-scaled distances, expert weights.
+
+## D. Sensor check on the scaling number (Sat Nov 14, late)
+
+Question: Earth's Hurst exponent is about 0.2 lower than the Moon's at matched slope. Is that real terrain or a difference between radar (Earth) and laser (Moon) elevation data?
+
+Test (`pipeline/sensor_check.py`): 900 lunar and 2,441 Earth windows, grouped by median slope. RMS height difference measured at 80 m to 2.56 km; Hurst refitted over short distances only and long distances only. Sensor noise acts at short distances, so a sensor effect should shrink at long distances.
+
+| Median slope | Gap, 80 m to 1.28 km (as shipped) | Gap, short only (80 to 320 m) | Gap, long only (320 m to 2.56 km) |
+|---|---|---|---|
+| 2 to 5 deg | 0.15 | 0.09 | 0.19 |
+| 5 to 10 deg | 0.18 | 0.11 | 0.26 |
+| 10 to 20 deg | 0.19 | 0.09 | 0.28 |
+
+Result: the gap is larger at long distances, where sensor noise is negligible next to the terrain signal. This points to a real terrain difference: on Earth, height differences stop growing sooner with distance (valley and ridge spacing of roughly a kilometre), while lunar highland slopes persist across kilometres. VERIFIED on our data.
+
+Not settled: a laser-to-laser comparison (ICESat-2 on Earth against LOLA) would be the direct proof. Near-flat Earth windows (median slope under about 1 degree) remain suspect because radar noise is comparable to their relief; they should be excluded from terrain matching.

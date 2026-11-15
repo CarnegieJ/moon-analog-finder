@@ -1,0 +1,12 @@
+name,reason_excluded
+Atacama Desert (Yungay) -24.08 -69.92,Coordinates were typed from general knowledge with no cited source. Replaced by the cited Atacama point.
+Svalbard (Bockfjorden) 79.44 13.35,Coordinates were typed from general knowledge. The only cited coordinate (78.00 16.00) is the centre of the archipelago and not a field site.
+Black Point Lava Flow (Arizona) 35.68 -111.47,Site is named by NASA but the coordinates were typed from general knowledge with no cited source.
+Lanzarote 29.035 -13.635,Source page gives coordinates but does not state any analog or training use.
+Rio Tinto 37.404 -6.3358,Cited Mars astrobiology analog (water chemistry). Not a lunar terrain analog so not relevant to this test.
+ESA ch.3 Central Australia,Listed for the Moon but the catalogue gives only the town of Alice Springs as a reference point; not a field-site location.
+ESA ch.12 Iceland (65 N 18 W),Listed for the Moon but the coordinate is the centre of the island; specific Icelandic sites are covered by Askja and CHILL-ICE.
+ESA ch.26 Svalbard (78 N 16 E),Listed for the Moon (water/ice) but the coordinate is the centre of the archipelago.
+ESA ch.8 Columbia River Basalt Group; ch.13 Kamchatka,Listed for the Moon but the catalogue gives a region or range with no point.
+ESA ch.5 9 11 19 20 21 23 28 29 30,Listed for Mars or astrobiology only in the catalogue directory; not lunar.
+Gros Morne (Newfoundland),Secondary-source only and not in the ESA catalogue; vegetated; dropped to keep the list lunar-focused.

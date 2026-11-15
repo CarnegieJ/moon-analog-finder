@@ -4,6 +4,11 @@ NASA Space Apps Challenge 2026, "Identify Earth Locations that Analog the Perman
 
 Pick a spot at the lunar south pole, say what you need to test, and get the Earth sites that best stand in for it, with a score per factor and a clear statement of where the analogy breaks.
 
+## Findings
+See `docs/FINDINGS.md` for what the search found and three characterised candidate sites (East Greenland, the south-east Pamir and Tarso Tousside in the Tibesti massif), with what matches, where each analogy breaks and what is not established.
+
+Live app: https://shashidharprakash33--moon-analog-finder-web.modal.run
+
 ## Use the app
 Open the hosted link, or locally:
 
@@ -19,7 +24,7 @@ Then open http://localhost:8766. No keys or accounts are needed.
 2. Describe every Earth candidate the same way, on the same 80 m grid, using the same code. Only bare, snow-free land is kept.
 3. Score each factor from 0 to 1 as the fraction that is the same, the definition used in NASA's lunar simulant Figure of Merit (Schrader et al. 2009).
 4. Combine the factors with weights set by the test purpose: rover driving, shadow work and crater access, or power and darkness survival.
-5. Rank 167,471 Earth windows in the browser. Gravity, vacuum and radiation are always shown as not matchable.
+5. Rank 236,193 Earth windows in the browser. Gravity, vacuum and radiation are always shown as not matchable.
 
 Weights and cut-offs are set by our team, not by NASA. See `docs/DECISIONS.md` for the reason behind each choice and `docs/BENCHMARK.md` for how the method is checked.
 
@@ -35,7 +40,8 @@ Weights and cut-offs are set by our team, not by NASA. See `docs/DECISIONS.md` f
 | Earth | 3D display terrain | Terrain Tiles on AWS Open Data (display only) |
 
 ## Limits
-- The Earth library covers bare, snow-free land between 55 S and 84 N. Antarctica is not included.
+- Measured skill is weak to modest: known lunar analog sites beat random bare land 61 to 65% of the time (50% is chance). The tool is a terrain screen, not a validated analog finder. See `docs/BENCHMARK.md`.
+- The Earth library covers bare, snow-free land between 55 S and 84 N, plus four ice-free Antarctic areas added by hand.
 - Lunar region centres are approximate.
 - Windows are 10 km, so features smaller than a few km (for example Meteor Crater) are not resolved.
 - No Earth site reproduces lunar gravity, vacuum or radiation.

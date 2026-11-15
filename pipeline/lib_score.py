@@ -16,12 +16,14 @@ def foms(L, m):
             "rough": 0.5 * (rat(L["tri_p50"], m["tri_p50"]) + rat(L["tri_p90"], m["tri_p90"])),
             "scale": 0.5 * (np.clip(1 - np.abs(L["hurst"] - m["hurst"]) / H_RANGE, 0, 1)
                             + np.clip(1 - np.abs(L["slope320_p50"] / np.maximum(L["slope_p50"], 1e-6) - m["slope320_p50"] / max(m["slope_p50"], 1e-6)) / RET_RANGE, 0, 1)),
-            "bare": np.where(np.isnan(nd), 1.0, np.clip(1 - (nd - 0.2) / 0.4, 0, 1)), "lowsun": np.clip(L["lowsun"], 0, 1),
+            "bare": np.where(np.isnan(nd), 1.0, np.clip(1 - (nd - 0.2) / 0.4, 0, 1)),
+            "reliable": (L["slope_p50"] >= 1.0).astype("float32"),   # near-flat Earth windows: radar noise is comparable to relief
+            "lowsun": np.clip(L["lowsun"], 0, 1),
             "dark": np.clip(L["dark_h"] / DARK_H, 0, 1),
             "t_peak": np.nan_to_num(np.clip(1 - np.abs(L["t_day_max"] - m["t_max"]) / T_RANGE, 0, 1)),
             "t_cold": np.nan_to_num(np.clip(1 - np.abs(L["t_night_min"] - m["t_avg"]) / T_RANGE, 0, 1))}
 def afom(f, p):
-    s = sum(f[k] * w for k, w in W[p].items()); return s * f["bare"] if GATE[p] else s
+    s = sum(f[k] * w for k, w in W[p].items()); return s * f["bare"] * f["reliable"] if GATE[p] else s
 if __name__ == "__main__":
     import json
     L = load(); moon = json.load(open("data/out/moon_profiles.json")); names = {"mobility": "Rover driving", "shadow": "Shadow work", "darkness": "Darkness survival"}

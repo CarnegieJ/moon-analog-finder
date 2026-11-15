@@ -66,7 +66,7 @@ function renderSpot() {
   else if (g("illum_max") > 0.6) flags += `<div class="flag ok">Has well-lit ground: best point is sunlit ${pc(g("illum_max"))} of the time.</div>`;
   if (!S.spot.name && near.d >= 12) flags += `<div class="flag ok">Not a named Artemis III region. Scored from the same data as the named ones. Nearest: ${near.r.name}, ${near.d.toFixed(0)} km away.</div>`;
   const h = histOf(M.hist, i), c = classes(h);
-  $("spot").innerHTML = `<h3 style="margin-topSites:0;color:var(--tx);font-size:16px">${title}</h3>
+  $("spot").innerHTML = `<h3 style="margin-top:0;color:var(--tx);font-size:16px">${title}</h3>
    <div class="mut">${Math.abs(g("lat")).toFixed(2)}° S, ${lonTxt(g("lon"))} · 10 km window${S.spot.name ? " · centre approximate" : ""}</div>${flags}
    <div class="kv"><span>Median slope</span><span>${f1(g("slope_p50"))}°</span><span>Steepest tenth of ground</span><span>over ${f1(g("slope_p90"))}°</span>
    <span>Ground under 5° / 5 to 10°</span><span>${pc(c[0])} / ${pc(c[1])}</span><span>Ground 10 to 20° / over 20°</span><span>${pc(c[2])} / ${pc(c[3])}</span>
@@ -155,7 +155,7 @@ function selectSite(j) {
   const season = dh > 48 ? `Continuous darkness for about ${Math.round(dh / 24)} days each winter. ` : `Longest night about ${Math.round(dh)} hours. `;
   $("card").innerHTML = `<div class="cap">Scorecard · ${coord(j)}</div><div style="font-size:26px;font-weight:700">${f2(scores[j])} <span class="mut" style="font-size:13px;font-weight:400">for ${p.name.toLowerCase()}</span></div>${bars}
    <div class="bar zero"><span>Gravity, vacuum, radiation</span><i><b style="width:0"></b></i><span>0.00</span></div>
-   <div class="kv" style="margin-topSites:8px"><span>Median slope (Moon / Earth)</span><span>${f1(mv(S.spot.i, "slope_p50"))}° / ${f1(ev(j, "slope_p50"))}°</span><span>Slope at 320 m (Moon / Earth)</span><span>${f1(mv(S.spot.i, "slope320_p50"))}° / ${f1(ev(j, "slope320_p50"))}°</span><span>Scaling number (Moon / Earth)</span><span>${f2(m.H)} / ${f2(ev(j, "hurst"))}</span>
+   <div class="kv" style="margin-top:8px"><span>Median slope (Moon / Earth)</span><span>${f1(mv(S.spot.i, "slope_p50"))}° / ${f1(ev(j, "slope_p50"))}°</span><span>Slope at 320 m (Moon / Earth)</span><span>${f1(mv(S.spot.i, "slope320_p50"))}° / ${f1(ev(j, "slope320_p50"))}°</span><span>Scaling number (Moon / Earth)</span><span>${f2(m.H)} / ${f2(ev(j, "hurst"))}</span>
    <span>Earth site: coldest month, average night</span><span>${isNaN(ev(j, "t_night_min")) ? "no data" : ev(j, "t_night_min").toFixed(0) + " K"}</span><span>Moon spot average</span><span>${isNaN(m.tavg) ? "no data" : m.tavg.toFixed(0) + " K"}</span></div>
    <p class="mut" style="margin:8px 0 0"><b>Where it breaks:</b> ${weak.length ? "weak on " + weak.join(", ") + ". " : "no weak factor for this purpose. "}${season}Lunar gravity (one sixth of Earth's), vacuum and radiation cannot be reproduced at any Earth site.
    <a target="_blank" href="https://worldview.earthdata.nasa.gov/?v=${(ev(j, "lon") - 1).toFixed(2)},${(la - 0.6).toFixed(2)},${(ev(j, "lon") + 1).toFixed(2)},${(la + 0.6).toFixed(2)}">Open in NASA Worldview</a></p>`;
