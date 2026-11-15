@@ -3,7 +3,7 @@
 <link rel="preload" href="vendor/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="vendor/fonts/SpaceGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="vendor/leaflet.css">
-<link rel="stylesheet" href="style.css?v=29">
+<link rel="stylesheet" href="style.css?v=30">
 </head><body>
 <div id="app" data-mode="moon" data-panel="">
 <header class="top">
@@ -44,7 +44,7 @@
   <div class="stage">
     <div id="moonmap" class="map" aria-label="Map of the lunar south pole"></div>
     <div id="earthmap" class="map" aria-label="Map of Earth"></div>
-    <div class="hint" id="hint" hidden>Click the map or choose a region</div>
+    <div class="hint" id="hint" hidden>Pick a spot at the lunar south pole to find Earth places with the same terrain</div>
     <div class="toast" id="toast" role="status" hidden></div>
 
     <div class="float bl only-moon"><button class="fab" data-pop="layersPop" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M10 2 2 6.5l8 4.5 8-4.5L10 2Zm-8 8 8 4.5 8-4.5M2 13.5 10 18l8-4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>Layers<b id="layN"></b></button><div id="legend"></div></div>
@@ -140,13 +140,15 @@
   <div class="dhead"><h2>How it works</h2><button class="ghost" id="closeHow">Close</button></div>
   <h3>The method in four lines</h3>
   <ol class="mut"><li>Describe the lunar spot: a 10 km window measured for slope, roughness, sunlight, permanent shadow, temperature and stable ground ice.</li><li>Describe every Earth candidate the same way, on the same 80 m grid, with the same code. Only bare, snow-free land is kept.</li><li>Score each factor from 0 to 1 as the fraction that is the same, then combine the factors with weights set by the test.</li><li>Rank the Earth windows, and always state where the analogy breaks.</li></ol>
+  <h3>What it covers</h3>
+  <p class="mut"><b>Covered:</b> terrain shape (slopes, steep ground, roughness), low sun and shadow, cold, long darkness and ground frozen all year, on bare land: deserts, polar and high plateau land, and volcanic and arid terrain by its shape. <b>Not covered:</b> caves and lava tubes, rock and mineral type (so volcanic rock is not matched as rock), dust, and gravity, vacuum and radiation. Mars is not in this version; the method works the same way for any body with elevation data.</p>
   <h3>How far to trust this</h3>
   <div class="mut" id="trust"><p>This is a terrain screen, not a validated analog finder. Tested on 21 established lunar analog sites (15 from the ESA Catalogue of Planetary Analogues), the terrain score ranks a known site above random bare land 61 to 65% of the time, where 50% is chance. It recognises sites valued for their landscape (Atacama, Antarctic Dry Valleys, Haughton, Askja) and misses sites valued for one small feature or a rock type (Meteor Crater, Cinder Lake). It cannot see rocks, soil strength, dust or rock type, and no site has been field-checked. Use the results as candidates to investigate.</p>
   <p><b>How reliable is a terrain score?</b> We split each of 2,629 lunar squares into two halves with no shared pixels and asked the method to find each half's partner among all the others. It ranks the true partner first 10% of the time (0.04% by chance) and within the top 1% half of the time. Two halves of the same terrain score about 0.91; two unrelated lunar squares score about 0.74. So 0.87 and above means "same kind of terrain", 0.80 to 0.87 is a possible match, and below 0.80 is no evidence of similarity. The method recognises a kind of terrain, not a unique place.</p>
   <p>One score is uncertain by about 0.07: moving the 10 km square by 2.5 km changes it by 0.06, sampling different pixels by 0.03, and elevation data at 90 m against 30 m by 0.02. Sites closer than that cannot be ranked against each other. These limits apply to terrain only; light, cold and frozen ground factors have not been tested this way.</p>
   <p>Weights and cut-offs are set by our team, not by NASA. No Earth site reproduces lunar gravity, vacuum or radiation.</p></div>
   <h3>How to read this</h3>
-  <div class="mut"><p><b>Scores</b> run from 0 to 1. "Roughness across scales" compares how slope changes between 80 m and 320 m and how height differences grow with distance (the Hurst exponent used in lunar roughness studies, Rosenburg et al. 2011). Each factor is the fraction that is the same between the lunar spot and the Earth site, the definition NASA uses to compare simulated lunar soil with real soil (Schrader et al. 2009). Weights and cut-offs are set by our team, not by NASA.</p>
+  <div class="mut"><p><b>Scores</b> run from 0 to 1. "Roughness pattern" compares how slope changes between 80 m and 320 m and how height differences grow with distance (the Hurst exponent used in lunar roughness studies, Rosenburg et al. 2011). Each factor is the fraction that is the same between the lunar spot and the Earth site, the definition NASA uses to compare simulated lunar soil with real soil (Schrader et al. 2009). Weights and cut-offs are set by our team, not by NASA.</p>
   <p><b>Scoring.</b> The hosted app scores all 3.8 million overlapping Earth squares on a server and returns the best square per 2-degree region. If the server cannot be reached, the app scores its built-in library of 236,193 windows in your browser instead; the footer says which one you are seeing. The outlook on each test card is always counted on the built-in library.</p>
   <p><b>Data.</b> Moon: NASA Lunar Reconnaissance Orbiter (LOLA elevation and slope, sunlight and permanent shadow maps, Diviner temperatures). Earth: Copernicus DEM 90 m (ESA), NASA MODIS vegetation and land surface temperature (2024), sun angles from latitude, Global Permafrost Zonation Index at about 1 km (Gruber 2012, University of Zurich). Frozen ground on the Moon is the share of the window where NASA's Diviner model finds water ice stable in the ground. Place context: country from Natural Earth boundaries at 1:50 million (approximate near borders), nearest town from GeoNames (CC BY 4.0). Map imagery: NASA GIBS (Blue Marble, Landsat WELD), OpenStreetMap; land outlines from Natural Earth. Display terrain: open Terrarium elevation tiles (AWS Open Data).</p>
   <p><b>Limits.</b> Earth library covers bare, snow-free land from 55 S to 84 N, plus four ice-free Antarctic areas added by hand (not ice-filtered). Windows are 10 km, so features smaller than a few km are not resolved. Earth temperature is the 2024 monthly average. Region centres are approximate. The permafrost map stops at 60 S, so Antarctic sites are not scored for frozen ground. Not covered: rock and mineral type (the global rock map we looked at (GLiM) has no class for the feldspar-rich rock of the lunar highlands), dust (lunar dust is not moved by wind, so Earth dust maps describe a different process) and lava tubes (none are known at these south pole targets). No Earth site reproduces lunar gravity, vacuum or radiation.</p>
@@ -158,6 +160,6 @@
 <div id="printSheet"></div>
 <script src="vendor/leaflet.js"></script>
 <script src="vendor/three.min.js"></script>
-<script src="ui.js?v=29"></script>
-<script src="app.js?v=29"></script>
+<script src="ui.js?v=30"></script>
+<script src="app.js?v=30"></script>
 </body></html>

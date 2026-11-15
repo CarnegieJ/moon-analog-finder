@@ -3,7 +3,11 @@
 const $ = id => document.getElementById(id), f1 = v => v.toFixed(1), f2 = v => v.toFixed(2), pc = v => Math.round(v * 100) + "%";
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const BINS = 46, T_RANGE = 200, DARK_H = 120, H_RANGE = 0.4, RET_RANGE = 0.5;
-const FACT = {slope: "Slope match", classes: "Steep ground share (10 and 20 deg)", scale: "Roughness across scales", lowsun: "Low sun angle", dark: "Long darkness", t_cold: "Cold", t_peak: "Peak temperature", frozen: "Frozen ground", bare: "Bare surface"};
+const FACT = {slope: "Slope match", classes: "Steep ground share (10 and 20 deg)", scale: "Roughness pattern (80 to 320 m)", lowsun: "Low sun angle", dark: "Long darkness", t_cold: "Cold", t_peak: "Peak temperature", frozen: "Frozen ground", bare: "Bare surface"};
+const HELP = {slope: "How alike the spread of slopes is, from flat to steep, on an 80 m grid", classes: "How alike the shares of ground steeper than 10 and 20 degrees are (rover limits)",
+  scale: "How alike the terrain gets rougher from 80 m to 320 m, and how fast height differences grow with distance (Hurst exponent)", lowsun: "How often the Earth site has the Sun low in the sky, as at the lunar pole",
+  dark: "How long the longest darkness lasts at the Earth site", t_cold: "How close the Earth site's coldest nights are to the lunar spot's average temperature", t_peak: "How close the Earth site's hottest days are to the lunar spot's peak temperature",
+  frozen: "How alike the share of ground frozen all year is (Earth permafrost against lunar stable ice)", bare: "How free of vegetation the Earth site is"};
 const PURPOSES = {
   mobility: {name: "Rover driving", desc: "Same steepness and same kind of terrain, on bare ground", gate: true, w: {slope: .5, scale: .5}},
   shadow: {name: "Shadow work and crater access", desc: "Steep access, low sun and cold. Mostly set by Earth latitude", gate: true, w: {classes: .35, lowsun: .35, t_cold: .30}},
@@ -114,7 +118,7 @@ function renderSpot() {
    <div class="stats"><div><b>${f1(g("slope_p50"))}°</b><span>median slope</span></div><div><b>${pc(g("illum_mean"))}</b><span>average sunlight</span></div><div><b>${pc(psr)}</b><span>permanent shadow</span></div><div><b>${tk(g("t_avg"), " K")}</b><span>average temperature</span></div></div>${flags}
    <details class="more"><summary>All numbers</summary><div class="kv"><span>Steepest tenth of ground</span><span>over ${f1(g("slope_p90"))}°</span>
    <span>Ground under 5° / 5 to 10°</span><span>${pc(c[0])} / ${pc(c[1])}</span><span>Ground 10 to 20° / over 20°</span><span>${pc(c[2])} / ${pc(c[3])}</span>
-   <span>Slope at 320 m / scaling number</span><span>${f1(g("slope320_p50"))}° / ${f2(g("hurst"))}</span><span>Height range</span><span>${g("relief_m").toFixed(0)} m</span>
+   <span>Slope at 320 m / roughness growth (Hurst)</span><span>${f1(g("slope320_p50"))}° / ${f2(g("hurst"))}</span><span>Height range</span><span>${g("relief_m").toFixed(0)} m</span>
    <span>Ground with stable ice (Diviner model)</span><span>${pc(g("ice_share") || 0)}</span>
    <span>Peak temperature</span><span>${tk(g("t_max"), " K")}</span><span>Highest sun angle</span><span>${f1(90 - Math.abs(g("lat")) + 1.54)}°</span></div></details>`;
   $("capM").innerHTML = `<i class="mdot"></i>Moon: ${esc(title)}`;
@@ -237,9 +241,10 @@ async function run() {
   const near = moonNear(), pj = probeJ, lvp = pj >= 0 ? level(terrOf(pj, m)) : null;
   const probeHtml = pj == -2 ? "" : pj < 0 ? `<div class="flag" style="margin:0 12px 10px">No library square within 6 km of ${S.probe[0]}, ${S.probe[1]}. That place is not bare land in our mask, is nearly all sea, or lies outside the coverage. <button class="linkbtn" data-unprobe>Remove</button></div>`
     : `<table><tr class="site probe" data-j="${pj}" tabindex="-1"><td>★</td><td><button class="x2" data-unprobe aria-label="Remove your place">×</button><span class="pl">Your place: ${esc((place(pj) || {}).country || "unnamed land")}</span><span class="co">${coord(pj)}${probeKm != null ? ` · nearest library square ${probeKm.toFixed(1)} km away` : ""}</span></td><td class="n"><b>${f2(scores[pj])}</b><br><span class="tag ${isT ? lvp.k : ""}">${isT ? "" : "terrain alone: "}${lvp.name}</span></td></tr></table>`;
+  const nTie = topSites.filter((j, r) => r > 0 && scores[j] >= best - CAL.err).length;
   $("ranked").innerHTML = probeHtml + `<table>` + topSites.map((j, r) => { const k = nearKnown(ev(j, "lat"), ev(j, "lon")), lv = level(terrOf(j, m)), tie = r > 0 && scores[j] >= best - CAL.err;
-    return `<tr class="site" data-j="${j}" tabindex="-1"><td>${r + 1}</td><td><span class="pl">${esc((place(j) || {}).country || "Unnamed land")}</span><span class="co">${coord(j)}</span>${k ? `<span class="tag k">near ${esc(k.split(" (")[0])}</span>` : ""}${ev(j, "nomask") ? `<span class="tag">Antarctic, ice not filtered</span>` : ""}</td><td class="n"><b>${f2(scores[j])}</b><br><span class="tag ${isT ? lv.k : ""}">${isT ? "" : "terrain alone: "}${lv.name}</span>${tie ? `<br><span class="mut" style="font-size:11.5px">level with #1</span>` : ""}</td></tr>`; }).join("") + "</table>";
-  $("ranked").insertAdjacentHTML("beforeend", `<p class="mut" style="margin:8px 12px 0">One score is uncertain by about ${CAL.err}, so sites marked "level with #1" cannot be ranked against it.</p><div class="acts2"><button class="chip" id="csvBtn">Download CSV</button></div>`);
+    return `<tr class="site" data-j="${j}" tabindex="-1"><td${tie ? ' title="Within the uncertainty of #1, so not ranked against it"' : ""}>${tie ? "=" : ""}${r + 1}</td><td><span class="pl">${esc((place(j) || {}).country || "Unnamed land")}</span><span class="co">${coord(j)}</span>${k ? `<span class="tag k">near ${esc(k.split(" (")[0])}</span>` : ""}${ev(j, "nomask") ? `<span class="tag">Antarctic, ice not filtered</span>` : ""}</td><td class="n"><b>${f2(scores[j])}</b><br><span class="tag ${isT ? lv.k : ""}">${isT ? "" : "terrain alone: "}${lv.name}</span></td></tr>`; }).join("") + "</table>";
+  $("ranked").insertAdjacentHTML("beforeend", `<p class="mut" style="margin:8px 12px 0">One score is uncertain by about ${CAL.err}${nTie ? `, so the ${nTie} sites marked = are level with #1 and their order is not meaningful` : ""}.</p><div class="acts2"><button class="chip" id="csvBtn">Download CSV</button></div>`);
   $("ranked").dataset.roving = "tr.site"; $("csvBtn").onclick = downloadCsv;
   $("ranked").querySelectorAll("[data-unprobe]").forEach(b => b.onclick = e => { e.stopPropagation(); clearProbe(); });
   bindRows($("ranked"));
@@ -361,7 +366,7 @@ function siteSummary(j = S.site) { const m = moonRef(), f = foms(j, m), p = PURP
   L.push(`Lunar spot: ${S.spot.name || "unnamed"} (${Math.abs(mv(i, "lat")).toFixed(2)} S, ${lonTxt(mv(i, "lon"))}), 10 km square. Purpose: ${p.name}${isCustom(S.purpose) ? " (custom weights)" : ""}.`);
   L.push(`Earth site: ${pl.country || "country not found"}, ${coord(j)}${pl.town ? `; nearest town over 1,000 people ${pl.town}, about ${pl.km} km` : ""}${pl.border < 60000 ? `; land border ${pl.border} km` : ""}${altOf(j) != null ? `; about ${altOf(j)} m above sea level` : V.c3e.alt != null && V.c3e.j === j ? `; about ${Math.round(V.c3e.alt / 10) * 10} m above sea level (display tiles)` : ""}.`);
   L.push(`Terrain match ${f2(RS ? RS.terr[j] : tm)} (${level(RS ? RS.terr[j] : tm).name}); uncertainty about ${f2(RS ? Math.hypot(RS.spread[j], 0.03, 0.02) : CAL.err)}. Slope chart match ${f2(f.slope)}, roughness across scales ${f2(f.scale)}.`);
-  L.push(`Median slope Moon ${f1(mv(i, "slope_p50"))} deg, Earth ${f1(ev(j, "slope_p50"))} deg. Scaling number Moon ${f2(m.H)}, Earth ${f2(ev(j, "hurst"))}.`);
+  L.push(`Median slope Moon ${f1(mv(i, "slope_p50"))} deg, Earth ${f1(ev(j, "slope_p50"))} deg. Roughness growth with distance (Hurst exponent) Moon ${f2(m.H)}, Earth ${f2(ev(j, "hurst"))}.`);
   if (nr) L.push(`Against the 8 neighbouring lunar squares (5 km away): ${f2(nr[0])} to ${f2(nr[1])}.`);
   if (RS) L.push(`Moving the Earth square 2.5 km changes the score by ${f2(RS.spread[j])} on average.`);
   if (e && mo) { let s = 0, k = 0; ELS.forEach((el, q) => { if (el <= mo.maxEl) { s += Math.abs(mo.curve[q] - e.curve[q]); k++; } }); L.push(`Sun and shadow: over sun heights up to ${mo.maxEl.toFixed(1)} deg, shadowed share differs by ${Math.round(s / k * 100)} percentage points on average.`);
@@ -497,7 +502,7 @@ function siteChips(j) {
 function selectSite(j, o = {}) {
   S.site = j; document.querySelectorAll("tr.site").forEach(tr => { const on = +tr.dataset.j == j; tr.classList.toggle("sel", on); tr.setAttribute("aria-selected", on); });
   const m = moonRef(), f = foms(j, m), p = PURPOSES[S.purpose], la = ev(j, "lat"), dh = ev(j, "dark_h"), pl = place(j) || {};
-  const bar = k => `<div class="bar${f[k] < 0.15 ? " zero" : ""}"><span>${FACT[k]} ${k in p.w ? `<span class="w">weight ${Math.round(p.w[k] * 100)}</span>` : (k == "bare" && p.gate ? '<span class="w">gate</span>' : "")}</span><i><b style="width:${f[k] * 100}%"></b></i><span>${f2(f[k])}</span></div>`;
+  const bar = k => `<div class="bar${f[k] < 0.15 ? " zero" : ""}" title="${HELP[k]}"><span>${FACT[k]} ${k in p.w ? `<span class="w">weight ${Math.round(p.w[k] * 100)}</span>` : (k == "bare" && p.gate ? '<span class="w">gate</span>' : "")}</span><i><b style="width:${f[k] * 100}%"></b></i><span>${f2(f[k])}</span></div>`;
   const used = Object.keys(p.w).concat(p.gate ? ["bare"] : []), good = used.filter(k => f[k] >= 0.5), poor = used.filter(k => f[k] < 0.5), rest = Object.keys(FACT).filter(k => !used.includes(k));
   const weak = Object.keys(p.w).filter(k => f[k] < 0.5).map(k => FACT[k].toLowerCase()), tm = (0.5 * f.slope + 0.5 * f.scale) * f.bare * f.reliable, perr = RS ? Math.hypot(RS.spread[j], 0.03, 0.02) : CAL.err;
   const season = dh > 48 ? `Continuous darkness for about ${Math.round(dh / 24)} days each winter. ` : `Longest night about ${Math.round(dh)} hours. `;
@@ -508,7 +513,7 @@ function selectSite(j, o = {}) {
    <div class="cards2"><div class="mini"><h4 class="okc">What matches</h4>${good.map(bar).join("") || '<p class="mut small">No factor used for this purpose scores 0.50 or higher.</p>'}</div>
    <div class="mini"><h4 class="badc">What differs</h4>${poor.map(bar).join("")}<div class="bar zero"><span>Gravity, vacuum, radiation</span><i><b style="width:0"></b></i><span>0.00</span></div></div></div>
    <p class="mut small" style="margin:10px 0 0">${breaks}</p>
-   <details class="more"><summary>All numbers</summary>${rest.map(bar).join("")}${histSvg(m.h, j)}<div class="kv" style="margin-top:8px">${placeLong(j)}<span>Median slope (Moon / Earth)</span><span>${f1(mv(S.spot.i, "slope_p50"))}° / ${f1(ev(j, "slope_p50"))}°</span><span>Slope at 320 m (Moon / Earth)</span><span>${f1(mv(S.spot.i, "slope320_p50"))}° / ${f1(ev(j, "slope320_p50"))}°</span><span>Scaling number (Moon / Earth)</span><span>${f2(m.H)} / ${f2(ev(j, "hurst"))}</span>
+   <details class="more"><summary>All numbers</summary>${rest.map(bar).join("")}${histSvg(m.h, j)}<div class="kv" style="margin-top:8px">${placeLong(j)}<span>Median slope (Moon / Earth)</span><span>${f1(mv(S.spot.i, "slope_p50"))}° / ${f1(ev(j, "slope_p50"))}°</span><span>Slope at 320 m (Moon / Earth)</span><span>${f1(mv(S.spot.i, "slope320_p50"))}° / ${f1(ev(j, "slope320_p50"))}°</span><span>Roughness growth with distance, Hurst (Moon / Earth)</span><span>${f2(m.H)} / ${f2(ev(j, "hurst"))}</span>
    <span>Ground frozen all year (Moon ice-stable share / Earth permafrost index)</span><span>${pc(m.ice || 0)} / ${isNaN(ev(j, "pzi")) ? "no data" : pc(ev(j, "pzi"))}</span>
    <span>Earth site: coldest month, average night</span><span>${isNaN(ev(j, "t_night_min")) ? "no data" : ev(j, "t_night_min").toFixed(0) + " K"}</span><span>Moon spot average</span><span>${isNaN(m.tavg) ? "no data" : m.tavg.toFixed(0) + " K"}</span>
    <span>Score uncertainty: placement / pixels / elevation source</span><span>${RS ? f2(RS.spread[j]) : "no data"} / 0.03 / 0.02</span></div></details>
