@@ -59,7 +59,8 @@
         <label class="chk"><input type="checkbox" id="newOnly"> Hide sites near a known analog</label>
         <div class="eyebrow gap">Limit the search area</div>
         <div class="fbar"><label>Country <select id="fCountry"><option value="">the whole world</option></select></label></div>
-        <div class="fbar" style="margin-top:8px"><label>Within <input id="fKm" size="4" value="200" inputmode="decimal" aria-label="Distance in km"> km of</label><input id="fLat" placeholder="lat" size="6" inputmode="decimal" aria-label="Latitude"><input id="fLon" placeholder="lon" size="6" inputmode="decimal" aria-label="Longitude"><button type="button" class="chip" id="pickBtn">Pick on map</button></div>
+        <div class="fbar" style="margin-top:8px"><label>Within <input id="fKm" size="4" value="200" inputmode="decimal" aria-label="Distance in km"> km of this point:</label></div>
+        <div class="fbar" style="margin-top:6px"><input id="fLat" placeholder="lat" size="7" inputmode="decimal" aria-label="Latitude"><input id="fLon" placeholder="lon" size="7" inputmode="decimal" aria-label="Longitude"><button type="button" class="chip" id="pickBtn">Pick on map</button></div>
         <div class="fbar" style="margin-top:8px"><label>Below <input id="fAlt" size="5" placeholder="any" inputmode="decimal" aria-label="Altitude limit in metres"> m</label><span class="mut small" id="altNote"></span></div>
         <div class="fbar"><span class="err" id="fMsg" role="alert"></span></div>
         <div class="factions"><button class="chip" type="submit">Apply</button><button class="chip" type="button" id="clearBtn">Clear</button></div>

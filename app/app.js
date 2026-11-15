@@ -268,7 +268,7 @@ function bindRows(box) {
   rows.forEach(tr => { tr.onclick = () => { selectSite(+tr.dataset.j); UI.go(4, false, true); }; tr.onkeydown = e => { if (e.key == "Enter" || e.key == " ") { e.preventDefault(); tr.onclick(); } }; });
 }
 const rowFor = j => document.querySelector(`#ranked tr.site[data-j="${j}"]`) || document.querySelector(`#known tr.site[data-j="${j}"]`);
-function findNear(lat, lon, km) { let bj = -1, bd = km; for (let j = 0; j < E.n; j++) { if (Math.abs(ev(j, "lat") - lat) > 0.02) continue; const d = kmBetween(ev(j, "lat"), ev(j, "lon"), lat, lon); if (d <= bd) { bd = d; bj = j; } } return bj; }
+function findNear(lat, lon, km) { let bj = -1, bd = km; for (let j = 0; j < E.n; j++) { if ((INF && !INF[j]) || Math.abs(ev(j, "lat") - lat) > 0.02) continue; const d = kmBetween(ev(j, "lat"), ev(j, "lon"), lat, lon); if (d <= bd) { bd = d; bj = j; } } return bj; }
 function clearPins() { earthMarkers.forEach(mk => earthMap.removeLayer(mk)); earthMarkers = []; if (probeMk) { earthMap.removeLayer(probeMk); probeMk = null; } $("legProbe").hidden = true; }
 function drawNear() { if (nearCircle) { earthMap.removeLayer(nearCircle); nearCircle = null; } const n = S.flt.near; if (n) nearCircle = L.circle([n[0], n[1]], {radius: n[2] * 1000, color: "#F2B04C", weight: 1.5, dashArray: "6 6", fill: false, interactive: false}).addTo(earthMap); }
 function siteGone() { S.site = null; if (UI.open == "site") UI.panel(null); $("siteTitle").textContent = ""; $("card").innerHTML = ""; }
@@ -564,6 +564,7 @@ function syncCmp() {
   if (!UI.cmpOpen) return; const m = SUN.moon, e = SUN.earth && SUN.earth.j === S.site ? SUN.earth : null, sun = S.col == "sun";
   $("cmpCapM").innerHTML = $("capM").innerHTML + (sun && m && m.H ? ` · <b>${pc(shadeAt(m.H))}</b> in shadow` : "");
   $("cmpCapE").innerHTML = $("capE").innerHTML + (sun && e && e.H ? ` · <b>${pc(shadeAt(e.H))}</b> in shadow` : "");
+  document.querySelectorAll("input[name=col2]").forEach(r => r.checked = r.value == S.col);
   $("cSunEl").value = SUN.el; $("cSunAz").value = SUN.a; $("cSunElV").textContent = SUN.el.toFixed(1) + "°";
 }
 /* ---------- Sun and shadow simulation ----------
