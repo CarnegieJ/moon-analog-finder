@@ -1,7 +1,7 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Moon Analog Finder</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="style.css?v=7">
 </head><body>
 <header><div><h1>Moon Analog Finder</h1><span class="sub">Pick a spot at the lunar south pole. Find where on Earth to test for it.</span></div>
 <div class="sub" id="libinfo"></div></header>
@@ -23,7 +23,7 @@
   <div class="row3"><div><div class="cap" id="capM">Moon</div><canvas id="c3m"></canvas></div>
   <div><div class="cap" id="capE">Earth: select a site above</div><canvas id="c3e"></canvas></div>
   <div id="card"></div></div>
-  <p class="mut">Both patches are 10 km across, drawn at the same vertical scale (heights x2). Drag to rotate. Colour: <label><input type="radio" name="col" value="slope" checked> slope</label> <label><input type="radio" name="col" value="height"> height</label>.
+  <p class="mut">Both patches are 10 km across, drawn at the same vertical scale (heights x2), seen from above. The grey square is the flat base under each patch; the arrow marks the top edge of the window (north on Earth, towards 0 degrees longitude on the Moon map). Drag to rotate. Colour: <label><input type="radio" name="col" value="slope" checked> slope</label> <label><input type="radio" name="col" value="height"> height</label>.
   Earth 3D patch is for display (open terrain tiles); all scores use Copernicus 90 m elevation.</p></section>
 <section class="card"><h2>How to read this</h2><div class="cols mut">
   <p><b>Scores</b> run from 0 to 1. "Roughness across scales" compares how slope changes between 80 m and 320 m and how height differences grow with distance (the Hurst exponent used in lunar roughness studies, Rosenburg et al. 2011). Each factor is the fraction that is the same between the lunar spot and the Earth site, the definition NASA uses to compare simulated lunar soil with real soil (Schrader et al. 2009). Weights and cut-offs are set by our team, not by NASA.</p>
@@ -32,5 +32,5 @@
 </main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 </body></html>

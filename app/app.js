@@ -166,11 +166,11 @@ function selectSite(j) {
 /* ---------- 3D patches ---------- */
 const V = {};
 function init3d() {
-  for (const id of ["c3m", "c3e"]) { const cv = $(id), r = new THREE.WebGLRenderer({canvas: cv, antialias: true}); const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+  for (const id of ["c3m", "c3e"]) { const cv = $(id), r = new THREE.WebGLRenderer({canvas: cv, antialias: true}); const sc = new THREE.Scene(), cam = new THREE.PerspectiveCamera(35, 1, 0.1, 200); cam.up.set(0, 0, 1);
     cam.position.set(0, -17, 9.5); cam.lookAt(0, 0, 0.5); sc.add(new THREE.AmbientLight(0xffffff, 0.55)); const dl = new THREE.DirectionalLight(0xffffff, 0.9); dl.position.set(-6, -4, 8); sc.add(dl);
     const grp = new THREE.Group(); sc.add(grp); V[id] = {r, sc, cam, grp, z: null, cv};
     let drag = null; cv.onpointerdown = e => { drag = [e.clientX, e.clientY]; cv.setPointerCapture(e.pointerId); };
-    cv.onpointermove = e => { if (!drag) return; S.rot.z += (e.clientX - drag[0]) * 0.01; S.rot.x = Math.max(-1.5, Math.min(-0.2, S.rot.x + (e.clientY - drag[1]) * 0.006)); drag = [e.clientX, e.clientY]; render3d(); };
+    cv.onpointermove = e => { if (!drag) return; S.rot.z += (e.clientX - drag[0]) * 0.01; S.rot.x = Math.max(-1.75, Math.min(-0.64, S.rot.x + (e.clientY - drag[1]) * 0.006)); drag = [e.clientX, e.clientY]; render3d(); };
     cv.onpointerup = () => drag = null; }
   window.addEventListener("resize", render3d);
 }
@@ -185,6 +185,10 @@ function buildMesh(v) {
     const k = ramp(t); col[i * 3] = k[0]; col[i * 3 + 1] = k[1]; col[i * 3 + 2] = k[2]; }
   g.setAttribute("color", new THREE.BufferAttribute(col, 3)); g.computeVertexNormals(); v.span = (mx - mn) / 1000 * 2;
   v.grp.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({vertexColors: true, side: THREE.DoubleSide})));
+  const zb = -(mx - mn) / 1000 - 0.15, fr = new THREE.BufferGeometry().setFromPoints([[-5, -5], [5, -5], [5, 5], [-5, 5], [-5, -5]].map(p => new THREE.Vector3(p[0], p[1], zb)));
+  v.grp.add(new THREE.Line(fr, new THREE.LineBasicMaterial({color: 0x4b5563})));
+  const na = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 5, zb), new THREE.Vector3(0, 6.2, zb), new THREE.Vector3(-0.35, 5.7, zb), new THREE.Vector3(0, 6.2, zb), new THREE.Vector3(0.35, 5.7, zb)]);
+  v.grp.add(new THREE.Line(na, new THREE.LineBasicMaterial({color: 0x9aa4b2})));
 }
 function draw3d() { if (S.spot) V.c3m.z = moonPatch(); buildMesh(V.c3m); buildMesh(V.c3e); render3d(); }
 function render3d() { for (const id in V) { const v = V[id], w = v.cv.clientWidth, h = v.cv.clientHeight; if (!w) continue; v.r.setPixelRatio(window.devicePixelRatio); v.r.setSize(w, h, false); v.cam.aspect = w / h; v.cam.updateProjectionMatrix(); v.grp.rotation.set(0, 0, S.rot.z); const span = Math.max(V.c3m.span || 0, V.c3e.span || 0), dist = 19 * Math.max(1, 1.45 / (w / h)) * Math.max(1, (10 + span * 1.6) / 12), el = -S.rot.x - 0.5; v.cam.position.set(0, -dist * Math.cos(el), dist * Math.sin(el)); v.cam.lookAt(0, 0, 0); v.r.render(v.sc, v.cam); } }
