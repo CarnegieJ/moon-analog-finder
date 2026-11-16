@@ -1,11 +1,12 @@
 """Hosts the Moon Analog Finder on Modal at a public URL: the static app plus the scoring service over the full overlapping-square library.
 The library (about 650 MB) lives in the Modal Volume "moon-analogs-lib3"; upload it once with scripts\\upload_library.ps1.
-Deploy from the project folder:  modal deploy pipeline/modal_host.py     (re-run after any change to app/ or the scoring code)"""
+Deploy from the project folder:  modal deploy pipeline/modal_host.py     (re-run after any change to app/ or the scoring code)
+Test copy first: set MAF_APP=moon-analog-finder-staging before deploying; it shares the library volume and gets its own URL."""
 import os
 import modal
 
 HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
-app = modal.App("moon-analog-finder")
+app = modal.App(os.environ.get("MAF_APP", "moon-analog-finder"))   # MAF_APP=moon-analog-finder-staging deploys a test copy at its own URL
 vol = modal.Volume.from_name("moon-analogs-lib3", create_if_missing=True)
 image = modal.Image.debian_slim(python_version="3.11").pip_install("fastapi[standard]", "numpy", "scipy", "shapely", "pandas", "pycountry", "reverse_geocoder")
 if modal.is_local():
@@ -15,7 +16,10 @@ if modal.is_local():
                   .add_local_file(os.path.join(HERE, "known_sites.csv"), "/root/known_sites.csv")
                   .add_local_file(os.path.join(ROOT, "data", "cache", "countries-50m.json"), "/root/countries-50m.json"))
 
-@app.function(image=image, scaledown_window=900, max_containers=2, memory=8192, cpu=4, volumes={"/library": vol})
+# Keep one container (and the loaded library) running so nobody waits for a cold start. Costs money while deployed:
+# on by default for the public app, off for test copies; override with MAF_MIN=0 or MAF_MIN=1 when deploying.
+MIN = int(os.environ.get("MAF_MIN", "1" if app.name == "moon-analog-finder" else "0"))
+@app.function(image=image, scaledown_window=900, min_containers=MIN, max_containers=2, memory=8192, cpu=4, volumes={"/library": vol})
 @modal.concurrent(max_inputs=20)
 @modal.asgi_app()
 def web():

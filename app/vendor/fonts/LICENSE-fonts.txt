@@ -1,0 +1,8 @@
+Fonts in this folder are used unmodified under the SIL Open Font License, Version 1.1 (SPDX: OFL-1.1).
+Full licence text: https://openfontlicense.org/open-font-license-official-text/
+
+SpaceGrotesk-Variable.woff2
+  Space Grotesk. Copyright 2020 The Space Grotesk Project Authors (https://github.com/floriankarsten/space-grotesk)
+
+Inter-Variable.woff2
+  Inter. Copyright 2020 The Inter Project Authors (https://github.com/rsms/inter)
