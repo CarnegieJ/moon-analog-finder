@@ -1,0 +1,13 @@
+# Publishes a TEST COPY of the app to its own Modal address, leaving the public site untouched. Reads the Modal tokens from .env (never printed).
+# Run from the project folder:  powershell -ExecutionPolicy Bypass -File .\scripts\deploy_staging.ps1
+$root = Split-Path $PSScriptRoot -Parent
+foreach ($k in "MODAL_TOKEN_ID", "MODAL_TOKEN_SECRET") {
+  $line = Get-Content (Join-Path $root ".env") | Where-Object { $_ -match "^$k=" } | Select-Object -First 1
+  $v = ($line -replace "^$k=", "").Trim().Trim('"')
+  if (-not $v) { Write-Host "$k is empty in .env" -ForegroundColor Red; exit 1 }
+  Set-Item -Path "Env:$k" -Value $v
+}
+Set-Location $root
+$env:PYTHONIOENCODING = "utf-8"
+$env:MAF_APP = "moon-analog-finder-staging"   # test copy at its own address; shares the library; no always-on container
+python -m modal deploy pipeline/modal_host.py
